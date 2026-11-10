@@ -369,6 +369,12 @@ export function Footer() {
               © 2026 Nerditia. All Rights Reserved.
             </div>
             <div className="flex items-center gap-6">
+              <Link to="/gallery" className="hover:text-purple-600 dark:hover:text-cyan-300 transition-colors">
+                Gallery
+              </Link>
+              <Link to="/blog" className="hover:text-purple-600 dark:hover:text-cyan-300 transition-colors">
+                Blog
+              </Link>
               <Link to="/privacy-policy" className="hover:text-purple-600 dark:hover:text-cyan-300 transition-colors">
                 Privacy Policy
               </Link>

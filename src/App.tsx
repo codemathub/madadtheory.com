@@ -15,6 +15,7 @@ import About from "@/pages/About";
 import Careers from "@/pages/Careers";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
+import Gallery from "@/pages/Gallery";
 import Contact from "@/pages/Contact";
 import GetAQuote from "@/pages/GetAQuote";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
@@ -61,6 +62,8 @@ export default function App() {
           <Route path="/careers" element={<Careers />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/media" element={<Navigate to="/gallery" replace />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/get-a-quote" element={<Navigate to="/contact" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

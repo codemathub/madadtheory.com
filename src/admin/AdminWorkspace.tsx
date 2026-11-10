@@ -136,7 +136,7 @@ export default function AdminWorkspace() {
     setNewReviewAuthor("");
     setNewReviewRole("");
     setNewReviewText("");
-    showToast("Google review added live to website!");
+    showToast("Review added to website!");
   };
 
   const handleDeleteReview = (id: string) => {
@@ -146,7 +146,7 @@ export default function AdminWorkspace() {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("google_reviews_updated"));
     }
-    showToast("Review removed from live site.");
+    showToast("Review removed from website.");
   };
 
   // Ecosystem Projects Management State
@@ -222,7 +222,7 @@ export default function AdminWorkspace() {
       const data = await res.json();
       if (data.success && data.url) {
         setEditingProject((prev) => ({ ...prev, imageUrl: data.url }));
-        showToast("Screenshot uploaded! Click 'Save Project' to publish live.");
+        showToast("Screenshot uploaded! Click 'Save Project' to save.");
         return;
       }
     } catch {}
@@ -230,7 +230,7 @@ export default function AdminWorkspace() {
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setEditingProject((prev) => ({ ...prev, imageUrl: base64 }));
-      showToast("Screenshot loaded! Click 'Save Project' to publish live.");
+      showToast("Screenshot loaded! Click 'Save Project' to save.");
     };
     reader.readAsDataURL(file);
     setIsUploadingScreenshot(false);
@@ -263,7 +263,7 @@ export default function AdminWorkspace() {
     saveCareers(updated);
     setNewJobTitle("");
     setNewJobDesc("");
-    showToast("Job opening published live on Careers page!");
+    showToast("Job opening published on Careers page!");
   };
 
   const handleDeleteJob = (id: string) => {
@@ -307,7 +307,7 @@ export default function AdminWorkspace() {
     setNewCsIndustry("");
     setNewCsHeadline("");
     setNewCsStrategy("");
-    showToast("Case study published live on Work page!");
+    showToast("Case study published on Work page!");
   };
 
   const handleDeleteCaseStudy = (id: string) => {
@@ -343,14 +343,14 @@ export default function AdminWorkspace() {
     saveServicesData(updated);
     setNewServiceTitle("");
     setNewServiceSummary("");
-    showToast("Service added live to Navbar dropdown and Catalogue!");
+    showToast("Service added to website!");
   };
 
   const handleDeleteService = (id: string) => {
     const updated = servicesList.filter((s) => s.id !== id);
     setServicesList(updated);
     saveServicesData(updated);
-    showToast("Service removed from Navbar and Catalogue.");
+    showToast("Service removed from website.");
   };
 
   // --- Blog / Insights State & Handlers ---
@@ -378,7 +378,7 @@ export default function AdminWorkspace() {
     saveBlogPosts(updated);
     setNewBlogTitle("");
     setNewBlogSummary("");
-    showToast("Blog article published live on Insights page!");
+    showToast("Blog article published on Blog page!");
   };
 
   const handleDeleteBlogPost = (slug: string) => {
@@ -395,7 +395,7 @@ export default function AdminWorkspace() {
     );
     setEcosystemProjects(updated);
     saveEcosystemProjects(updated);
-    showToast(`"${editingProject.title}" saved & published live!`);
+    showToast(`"${editingProject.title}" saved successfully!`);
   };
 
   const handleResetEcosystem = () => {
@@ -502,7 +502,7 @@ export default function AdminWorkspace() {
     setNewVidRole("");
     setNewVidUrl("");
     setNewVidPoster("");
-    showToast("Video reel published live to website!");
+    showToast("Video reel published to website!");
   };
 
   const handleDeleteVideo = (id: string) => {
@@ -557,7 +557,7 @@ export default function AdminWorkspace() {
     saveGalleryPhotos(updated);
     setNewPhotoTitle("");
     setNewPhotoUrl("");
-    showToast("Culture photo published live on homepage!");
+    showToast("Photo published to website!");
   };
 
   const handleDeletePhoto = (id: string) => {
@@ -694,7 +694,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
     setIsSaving(true);
     await updateSiteContent(formContent);
     setIsSaving(false);
-    showToast("Site content & footer updated live in database!");
+    showToast("Content updated successfully!");
   };
 
   const showToast = (msg: string) => {
@@ -728,7 +728,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
       <header className="border-b border-brand-border dark:border-[#261E33] bg-surface-card dark:bg-[#151020] sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link to="/" title="Go to Live Site">
+            <Link to="/" title="Go to Website">
               <Logo size="sm" />
             </Link>
             <span className="text-brand-border">|</span>
@@ -747,7 +747,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-xl border border-brand-border dark:border-[#261E33] hover:border-brand-purple text-text-muted hover:text-brand-purple transition-all"
             >
               <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-              Live Site
+              View Website
             </Link>
 
             <Button
@@ -963,8 +963,8 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             </div>
 
             {/* Leads Table + Details Drawer */}
-            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-              <div className="flex-1 w-full min-w-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
+            <div className="admin-grid-leads">
+              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     All Inquiries ({filteredLeads.length})
@@ -1034,7 +1034,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
 
               {/* Lead Details Drawer */}
-              <div className="w-full lg:w-96 shrink-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 {selectedLead ? (
                   <>
                     <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
@@ -1521,7 +1521,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <h4 className="text-sm font-bold text-text-main dark:text-white">
                   Active Services ({servicesList.length})
                 </h4>
-                <span className="text-xs text-text-muted">Live on Navbar Dropdown & /services</span>
+                <span className="text-xs text-text-muted">Active on Services Page</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1553,7 +1553,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     </div>
                     <div className="text-[10px] text-text-muted font-mono pt-2 border-t border-brand-border/40 dark:border-white/5 flex items-center justify-between">
                       <span>/{srv.slug}</span>
-                      <span className="text-emerald-500">Live</span>
+                      <span className="text-emerald-500">Active</span>
                     </div>
                   </div>
                 ))}
@@ -1575,10 +1575,10 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Award className="w-4 h-4 text-brand-purple" />
-                    <span>Add New Client Case Study (/portfolio)</span>
+                    <span>Add New Case Study</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    Published case studies appear on the /portfolio showcase with live performance metrics.
+                    Published case studies appear on the portfolio and work page.
                   </p>
                 </div>
                 <Button type="submit" size="sm" className="rounded-xl">
@@ -1673,7 +1673,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <h4 className="text-sm font-bold text-text-main dark:text-white">
                   Active Case Studies ({portfolioList.length})
                 </h4>
-                <span className="text-xs text-text-muted">Live on /portfolio</span>
+                <span className="text-xs text-text-muted">Active on Portfolio</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1733,10 +1733,10 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-brand-purple" />
-                    <span>Post New Career Opportunity (/careers)</span>
+                    <span>Post New Career Opportunity</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    Job postings immediately go live on the careers page and accept incoming CVs.
+                    Job postings appear on the careers page and accept incoming applications.
                   </p>
                 </div>
                 <Button type="submit" size="sm" className="rounded-xl">
@@ -1835,7 +1835,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <h4 className="text-sm font-bold text-text-main dark:text-white">
                   Active Openings ({careersList.length})
                 </h4>
-                <span className="text-xs text-text-muted">Live on /careers</span>
+                <span className="text-xs text-text-muted">Active on Careers</span>
               </div>
 
               <div className="space-y-3">
@@ -1952,7 +1952,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <h4 className="text-sm font-bold text-text-main dark:text-white">
                   Active Articles ({blogList.length})
                 </h4>
-                <span className="text-xs text-text-muted">Live on /blog</span>
+                <span className="text-xs text-text-muted">Active on Blog</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1984,7 +1984,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     </div>
                     <div className="text-[10px] text-text-muted font-mono pt-2 border-t border-brand-border/40 dark:border-white/5 flex items-center justify-between">
                       <span>/blog/{b.slug}</span>
-                      <span className="text-emerald-500">Live</span>
+                      <span className="text-emerald-500">Active</span>
                     </div>
                   </div>
                 ))}
@@ -2007,10 +2007,10 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span>Add New Google Review</span>
+                    <span>Add New Review</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    Live client reviews displayed in the homepage Google reviews slider.
+                    Client reviews displayed on the website.
                   </p>
                 </div>
                 <Button type="submit" size="sm" className="rounded-xl">
@@ -2078,7 +2078,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             {/* List of Active Reviews */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                Active Live Google Reviews ({googleReviews.length})
+                Active Reviews ({googleReviews.length})
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {googleReviews.map((rev) => (
@@ -2118,7 +2118,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
                     <div className="pt-3 mt-3 border-t border-brand-border/60 dark:border-[#261E33] flex items-center justify-between">
                       <span className="text-[10px] text-emerald-500 font-semibold">
-                        ✓ Live on Homepage
+                        ✓ Active on Website
                       </span>
                       <button
                         type="button"
@@ -2147,7 +2147,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                   Projects
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Manage portfolio projects, live links, and screenshots.
+                  Manage portfolio projects, links, and screenshots.
                 </p>
               </div>
 
@@ -2175,15 +2175,15 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-purple/10 text-brand-purple text-xs font-bold hover:bg-brand-purple/20 transition-colors"
                 >
-                  <span>View on Homepage</span>
+                  <span>View on Website</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+            <div className="admin-grid-projects">
               {/* Project Selector List (Left column) */}
-              <div className="w-full lg:w-80 shrink-0 p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
+              <div className="p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
                 <div className="flex items-center justify-between px-2">
                   <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted block">
                     Showcase Projects ({ecosystemProjects.length})
@@ -2241,7 +2241,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
 
               {/* Project Edit Form (Right column) */}
-              <div className="flex-1 w-full min-w-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 <form onSubmit={handleSaveProject} className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-border dark:border-[#261E33] pb-4">
                     <div>
@@ -2369,7 +2369,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                        Live Project Website Link
+                        Website Link
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -2499,7 +2499,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                   <div className="pt-4 border-t border-brand-border dark:border-[#261E33] flex justify-end">
                     <Button type="submit" variant="primary" size="md" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white">
                       <Save className="w-4 h-4 mr-2" />
-                      Save & Publish Live
+                      Save Project
                     </Button>
                   </div>
                 </form>
@@ -2524,15 +2524,15 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 </p>
               </div>
 
-              <a
-                href="/#testimonials"
+              <Link
+                to="/gallery"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-purple/10 text-brand-purple text-xs font-bold hover:bg-brand-purple/20 transition-colors shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold hover:bg-purple-500/20 transition-colors shrink-0"
               >
-                <span>View on Homepage</span>
+                <span>View Public Gallery</span>
                 <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              </Link>
             </div>
 
             {/* 1. Client Video Reels */}
@@ -2661,7 +2661,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                   </div>
                 </div>
 
-                {/* Live video preview */}
+                {/* Video preview */}
                 {newVidUrl && (
                   <div className="p-3 rounded-2xl bg-black/40 border border-brand-border/40 flex items-center gap-4">
                     <div className="w-16 h-24 rounded-xl overflow-hidden bg-black shrink-0 border border-white/10">

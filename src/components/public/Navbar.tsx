@@ -195,6 +195,30 @@ export function Navbar() {
             </Link>
 
             <Link
+              to="/gallery"
+              className={cn(
+                "px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-150",
+                isActive("/gallery")
+                  ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40"
+                  : "text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100/70 dark:hover:bg-white/5"
+              )}
+            >
+              Gallery
+            </Link>
+
+            <Link
+              to="/blog"
+              className={cn(
+                "px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-150",
+                isActive("/blog")
+                  ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40"
+                  : "text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100/70 dark:hover:bg-white/5"
+              )}
+            >
+              Blog
+            </Link>
+
+            <Link
               to="/about"
               className={cn(
                 "px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-150",
@@ -392,6 +416,20 @@ export function Navbar() {
                 className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-purple-50 dark:hover:bg-purple-950/40"
               >
                 Work & Case Studies
+              </Link>
+
+              <Link
+                to="/gallery"
+                className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              >
+                Media & Culture Gallery
+              </Link>
+
+              <Link
+                to="/blog"
+                className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              >
+                Blog & Playbooks
               </Link>
 
               <Link
