@@ -127,8 +127,8 @@ process.on("uncaughtException", (error) => {
 async function startServer() {
   await connectDB();
 
-  app.listen(PORT, () => {
-    console.log(`[Server] Mad Ad Theory Backend running on http://localhost:${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`[Server] Mad Ad Theory Backend running on http://0.0.0.0:${PORT}`);
   });
 }
 
