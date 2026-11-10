@@ -733,12 +733,8 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             </Link>
             <span className="text-brand-border">|</span>
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-purple/10 text-brand-purple uppercase tracking-wider">
-                Admin Center
-              </span>
-              <span className="flex items-center text-[11px] text-emerald-500 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5" />
-                Live Sync
+              <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                Admin Panel
               </span>
             </div>
           </div>
@@ -766,37 +762,37 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
           </div>
         </div>
 
-        {/* Unified Sub-Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center space-x-1 border-t border-brand-border/40 dark:border-[#261E33]/40 overflow-x-auto text-xs font-semibold">
+        {/* Clean Sub-Navigation Tabs without horizontal scrollbar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center space-x-1 border-t border-brand-border/40 dark:border-[#261E33]/40 overflow-x-auto no-scrollbar text-xs font-medium">
           <button
             onClick={() => handleTabChange("leads")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "leads"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Client Inquiries ({totalLeads})</span>
+            <span>Inquiries ({totalLeads})</span>
           </button>
 
           <button
             onClick={() => handleTabChange("ecosystem")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "ecosystem"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Showcase Projects ({ecosystemProjects.length})</span>
+            <span>Projects ({ecosystemProjects.length})</span>
           </button>
 
           <button
             onClick={() => handleTabChange("media")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "media" || activeTab === "media-upload"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
@@ -806,21 +802,21 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
           <button
             onClick={() => handleTabChange("reviews")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "reviews"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <Star className="w-4 h-4" />
-            <span>Google Reviews ({googleReviews.length})</span>
+            <span>Reviews ({googleReviews.length})</span>
           </button>
 
           <button
             onClick={() => handleTabChange("services")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "services"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
@@ -830,9 +826,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
           <button
             onClick={() => handleTabChange("portfolio")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "portfolio"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
@@ -842,38 +838,38 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
           <button
             onClick={() => handleTabChange("blog")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "blog"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Blog Articles ({blogList.length})</span>
+            <span>Blog ({blogList.length})</span>
           </button>
 
           <button
             onClick={() => handleTabChange("cms-hero")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "cms-hero"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <FileEdit className="w-4 h-4" />
-            <span>Website Content</span>
+            <span>Website Text</span>
           </button>
 
           <button
             onClick={() => handleTabChange("cms-footer")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+            className={`py-3 px-3.5 border-b-2 flex items-center space-x-1.5 whitespace-nowrap transition-colors ${
               activeTab === "cms-footer"
-                ? "border-brand-purple text-brand-purple font-bold"
+                ? "border-purple-600 text-purple-600 dark:text-purple-400 font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <MapPin className="w-4 h-4" />
-            <span>Footer & Office</span>
+            <span>Footer & Contact</span>
           </button>
         </div>
       </header>
@@ -887,50 +883,39 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
       )}
 
       {/* Main Content Workspace */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
         {/* ==================================================================== */}
         {/* TAB 1: INBOUND LEADS & CRM PIPELINE */}
         {/* ==================================================================== */}
         {activeTab === "leads" && (
           <div className="space-y-6">
-            {/* KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
-                <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                  Total Enquiries
+            {/* Sober & Compact Summary Cards */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
+                <span className="text-xs text-text-muted font-medium block">
+                  Total Inquiries
                 </span>
-                <div className="text-3xl font-extrabold mt-1">{totalLeads}</div>
-                <p className="text-[11px] text-emerald-500 font-semibold mt-1">
-                  ● Real-time sync with database
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
-                <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                  New Unassigned
-                </span>
-                <div className="text-3xl font-extrabold mt-1 text-blue-500">{newLeads}</div>
-                <p className="text-[11px] text-text-muted mt-1">Pending initial review</p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
-                <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                  Deals Closed / Won
-                </span>
-                <div className="text-3xl font-extrabold mt-1 text-emerald-500">{wonLeads}</div>
-                <p className="text-[11px] text-emerald-500 font-semibold mt-1">
-                  Active client contracts
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
-                <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">
-                  Blended Client ROAS
-                </span>
-                <div className="text-3xl font-extrabold mt-1 text-brand-purple">
-                  {liveContent.metricRoas}
+                <div className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
+                  {totalLeads}
                 </div>
-                <p className="text-[11px] text-text-muted mt-1">Performance target</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
+                <span className="text-xs text-text-muted font-medium block">
+                  New / Unassigned
+                </span>
+                <div className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
+                  {newLeads}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
+                <span className="text-xs text-text-muted font-medium block">
+                  Deals Won
+                </span>
+                <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                  {wonLeads}
+                </div>
               </div>
             </div>
 
@@ -978,13 +963,13 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             </div>
 
             {/* Leads Table + Details Drawer */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
+            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+              <div className="flex-1 w-full min-w-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted">
-                    Inbound Pipeline ({filteredLeads.length} Total)
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    All Inquiries ({filteredLeads.length})
                   </h3>
-                  <span className="text-xs text-text-muted">Click row to view details</span>
+                  <span className="text-xs text-text-muted">Click any row to view details</span>
                 </div>
 
                 {filteredLeads.length === 0 ? (
@@ -999,7 +984,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                           <th className="pb-3 font-semibold">Ref #</th>
                           <th className="pb-3 font-semibold">Company & Contact</th>
                           <th className="pb-3 font-semibold">Budget</th>
-                          <th className="pb-3 font-semibold">Pipeline Stage</th>
+                          <th className="pb-3 font-semibold">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-brand-border/60 dark:divide-[#261E33]/60">
@@ -1049,7 +1034,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
 
               {/* Lead Details Drawer */}
-              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="w-full lg:w-96 shrink-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 {selectedLead ? (
                   <>
                     <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
@@ -1192,7 +1177,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     {/* Project Brief */}
                     <div className="space-y-1.5">
                       <span className="text-xs font-bold uppercase tracking-wider text-text-muted block">
-                        Project Brief & Requirement
+                        Client Message & Requirement
                       </span>
                       <div className="p-4 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border/60 dark:border-[#261E33]/60 text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
                         {selectedLead.projectDescription}
@@ -1207,7 +1192,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         onClick={() => handleCopyLeadSummary(selectedLead)}
                         className="w-full rounded-xl text-xs font-bold py-2.5"
                       >
-                        Copy Full Brief (WhatsApp / Slack)
+                        Copy Inquiry Details
                       </Button>
 
                       <Button
@@ -1216,15 +1201,14 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         className="w-full rounded-xl text-xs font-bold py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
                       >
                         <UserCheck className="w-4 h-4 mr-2" />
-                        Convert to Active Client & Won
+                        Mark as Won
                       </Button>
                     </div>
                   </>
                 ) : (
                   <div className="py-20 text-center text-text-muted text-xs space-y-2">
-                    <Sparkles className="w-8 h-8 mx-auto text-brand-purple/40" />
-                    <p className="font-semibold text-text-main">No Lead Selected</p>
-                    <p>Click on any inquiry row in the table to inspect contact details, requirements, budget, and project scope.</p>
+                    <p className="font-semibold text-text-main">No Inquiry Selected</p>
+                    <p>Click on any row in the table to view details.</p>
                   </div>
                 )}
               </div>
@@ -1240,14 +1224,14 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
               <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-4">
                 <div>
-                  <h3 className="text-lg font-bold">Public Hero & Value Proposition CMS</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Website Content</h3>
                   <p className="text-xs text-text-muted">
-                    Changes here immediately update the live marketing homepage in real time.
+                    Edit the main text and numbers displayed on the website.
                   </p>
                 </div>
                 <Button type="submit" disabled={isSaving} className="rounded-xl font-bold text-xs">
                   <Save className="w-3.5 h-3.5 mr-1.5" />
-                  {isSaving ? "Publishing..." : "Save & Publish Changes"}
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
 
@@ -1316,7 +1300,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs text-text-muted mb-1 font-semibold">
-                      Average ROAS Multiple
+                      Average Client Results (e.g. 4.8x)
                     </label>
                     <input
                       type="text"
@@ -1330,7 +1314,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
                   <div>
                     <label className="block text-xs text-text-muted mb-1 font-semibold">
-                      Data-Driven Tracking %
+                      Tracking Accuracy %
                     </label>
                     <input
                       type="text"
@@ -1344,7 +1328,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
                   <div>
                     <label className="block text-xs text-text-muted mb-1 font-semibold">
-                      Brands Scaled Count
+                      Clients Served Count
                     </label>
                     <input
                       type="text"
@@ -1369,9 +1353,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
               <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-4">
                 <div>
-                  <h3 className="text-lg font-bold">Public Footer & Official Agency Coordinates</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Footer & Contact Details</h3>
                   <p className="text-xs text-text-muted">
-                    Controls official contact points, company address, and copyright across all footer components.
+                    Update phone, email, office address, and copyright text.
                   </p>
                 </div>
                 <Button type="submit" disabled={isSaving} className="rounded-xl font-bold text-xs">
@@ -1473,10 +1457,10 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-brand-purple" />
-                    <span>Add New Service (Navbar & Catalogue)</span>
+                    <span>Add New Service</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    Changes here immediately update the website navigation menu, dropdowns, and dedicated service pages.
+                    Changes here immediately update the website navigation menu and service pages.
                   </p>
                 </div>
                 <Button type="submit" size="sm" className="rounded-xl">
@@ -2159,11 +2143,11 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Live Showcase Projects
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Projects
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Manage the interactive client projects shown on the homepage with real screenshots and live website links.
+                  Manage portfolio projects, live links, and screenshots.
                 </p>
               </div>
 
@@ -2532,11 +2516,11 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Media Studio: Client Videos & Photo Gallery
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Videos & Photos
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Upload video reels and team culture photos directly from your computer. Updates immediately appear on the live homepage.
+                  Upload video reels and team photos.
                 </p>
               </div>
 
@@ -2555,15 +2539,12 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
               <div className="border-b border-brand-border dark:border-[#261E33] pb-4 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                    Video Reels
-                  </span>
                   <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                    Upload New Client Video Reel
+                    Add Video Reel
                   </h4>
                 </div>
                 <span className="text-xs font-bold text-text-muted">
-                  {videoTestimonials.length} Reels Active
+                  {videoTestimonials.length} Reels
                 </span>
               </div>
 
