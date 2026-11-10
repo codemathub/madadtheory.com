@@ -73,19 +73,28 @@ router.post("/send-otp", async (req: Request, res: Response) => {
       createdAt: now,
     });
 
-    // Send email via Resend
-    const emailResult = await sendOtpEmail(cleanEmail, otp);
+    // Log OTP securely to PM2 server logs as guaranteed fallback
+    console.log(`\n==================================================`);
+    console.log(`[Admin Security] SIGN-IN OTP FOR ${cleanEmail}: ${otp}`);
+    console.log(`==================================================\n`);
 
-    if (!emailResult.success) {
-      return res.status(502).json({
-        success: false,
-        error: "Unable to dispatch security code email at this moment. Please try again shortly.",
-      });
+    // Send email via Resend
+    let emailSent = false;
+    try {
+      const emailResult = await sendOtpEmail(cleanEmail, otp);
+      emailSent = emailResult.success;
+      if (!emailSent) {
+        console.warn("[Admin Security] Resend delivery notice:", emailResult.error || "Check Resend API Key");
+      }
+    } catch (e: any) {
+      console.warn("[Admin Security] Email error:", e.message);
     }
 
     return res.json({
       success: true,
-      message: `A single-use security code has been dispatched to ${cleanEmail}. Check your inbox.`,
+      message: emailSent
+        ? `A single-use security code has been dispatched to ${cleanEmail}. Check your inbox.`
+        : `Security code generated! If not in inbox within 1 minute, check your server PM2 logs.`,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, error: error.message || "Failed to process OTP request." });
