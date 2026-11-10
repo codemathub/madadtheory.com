@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ServiceItem } from "@/lib/servicesData";
 import { useServicesData } from "@/lib/servicesStore";
+import { useSiteContent } from "@/lib/siteContentStore";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,8 @@ const categoryOrder = ["Marketing", "Technology", "Automation", "Creative"] as c
 
 export function Navbar() {
   const servicesData = useServicesData();
+  const content = useSiteContent();
+  const logoUrl = content?.logoUrl || "/images/logo-raw.jpeg";
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -124,7 +127,7 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
             <div className="relative">
               <img
-                src="/images/logo-raw.jpeg"
+                src={logoUrl}
                 alt="Mad Ad Theory Emblem"
                 className={cn(
                   "rounded-xl object-cover ring-1 ring-purple-500/20 shadow-sm transition-all duration-300",

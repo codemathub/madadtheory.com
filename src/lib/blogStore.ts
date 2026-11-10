@@ -9,6 +9,7 @@ export interface BlogPost {
   date: string;
   author: string;
   content?: string;
+  coverImage?: string;
 }
 
 export const initialBlogPosts: BlogPost[] = [

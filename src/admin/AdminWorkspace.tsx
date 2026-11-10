@@ -33,6 +33,11 @@ import {
   Briefcase,
   BookOpen,
   Award,
+  Upload,
+  Megaphone,
+  Edit3,
+  X,
+  Check,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
@@ -92,11 +97,47 @@ export default function AdminWorkspace() {
   const liveContent = useSiteContent();
   const [formContent, setFormContent] = useState<SiteContentData>(liveContent);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // Sync CMS form content when liveContent loads
   useEffect(() => {
     setFormContent(liveContent);
   }, [liveContent]);
+
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingLogo(true);
+    showToast("Uploading brand logo...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        const updated = { ...formContent, logoUrl: data.url };
+        setFormContent(updated);
+        await updateSiteContent(updated);
+        showToast("Brand logo updated and live across the entire website!");
+      } else {
+        showToast("Upload notice: " + (data.error || "Failed to upload logo"));
+      }
+    } catch (err: any) {
+      showToast("Error uploading logo: " + err.message);
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleResetLogo = async () => {
+    const updated = { ...formContent, logoUrl: "/images/logo-raw.jpeg" };
+    setFormContent(updated);
+    await updateSiteContent(updated);
+    showToast("Brand logo reset to official emblem.");
+  };
 
   // Google Reviews State
   const [googleReviews, setGoogleReviews] = useState<GoogleReview[]>(() => {
@@ -106,37 +147,75 @@ export default function AdminWorkspace() {
     } catch {}
     return initialGoogleReviews;
   });
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [newReviewAuthor, setNewReviewAuthor] = useState("");
   const [newReviewRole, setNewReviewRole] = useState("");
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(5);
 
-  const handleAddReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newReviewAuthor.trim() || !newReviewText.trim()) return;
-    const colors = ["bg-blue-600", "bg-purple-600", "bg-emerald-600", "bg-rose-600", "bg-amber-600", "bg-cyan-600"];
-    const initials = newReviewAuthor.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "U";
-    const newRev: GoogleReview = {
-      id: `rev-${Date.now()}`,
-      author: newReviewAuthor.trim(),
-      role: newReviewRole.trim() || "Client",
-      avatarBg: colors[Math.floor(Math.random() * colors.length)],
-      initials,
-      rating: newReviewRating,
-      timeAgo: "Just now",
-      text: newReviewText.trim(),
-      verified: true,
-    };
-    const updated = [newRev, ...googleReviews];
-    setGoogleReviews(updated);
-    localStorage.setItem("mat_google_reviews", JSON.stringify(updated));
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("google_reviews_updated"));
-    }
+  const handleSelectReviewToEdit = (r: GoogleReview) => {
+    setEditingReviewId(r.id);
+    setNewReviewAuthor(r.author);
+    setNewReviewRole(r.role || "");
+    setNewReviewText(r.text);
+    setNewReviewRating(r.rating);
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
+  const handleCancelReviewEdit = () => {
+    setEditingReviewId(null);
     setNewReviewAuthor("");
     setNewReviewRole("");
     setNewReviewText("");
-    showToast("Review added to website!");
+    setNewReviewRating(5);
+  };
+
+  const handleAddReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReviewAuthor.trim() || !newReviewText.trim()) return;
+
+    if (editingReviewId) {
+      const updated = googleReviews.map((r) =>
+        r.id === editingReviewId
+          ? {
+              ...r,
+              author: newReviewAuthor.trim(),
+              role: newReviewRole.trim() || "Client",
+              text: newReviewText.trim(),
+              rating: newReviewRating,
+            }
+          : r
+      );
+      setGoogleReviews(updated);
+      localStorage.setItem("mat_google_reviews", JSON.stringify(updated));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("google_reviews_updated"));
+      }
+      handleCancelReviewEdit();
+      showToast("Review updated successfully!");
+    } else {
+      const colors = ["bg-blue-600", "bg-purple-600", "bg-emerald-600", "bg-rose-600", "bg-amber-600", "bg-cyan-600"];
+      const initials = newReviewAuthor.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "U";
+      const newRev: GoogleReview = {
+        id: `rev-${Date.now()}`,
+        author: newReviewAuthor.trim(),
+        role: newReviewRole.trim() || "Client",
+        avatarBg: colors[Math.floor(Math.random() * colors.length)],
+        initials,
+        rating: newReviewRating,
+        timeAgo: "Just now",
+        text: newReviewText.trim(),
+        verified: true,
+      };
+      const updated = [newRev, ...googleReviews];
+      setGoogleReviews(updated);
+      localStorage.setItem("mat_google_reviews", JSON.stringify(updated));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("google_reviews_updated"));
+      }
+      handleCancelReviewEdit();
+      showToast("Review added to website!");
+    }
   };
 
   const handleDeleteReview = (id: string) => {
@@ -275,6 +354,7 @@ export default function AdminWorkspace() {
 
   // --- Portfolio / Case Studies State & Handlers ---
   const [portfolioList, setPortfolioList] = useState<CaseStudy[]>(getPortfolio);
+  const [editingCsId, setEditingCsId] = useState<string | null>(null);
   const [newCsClient, setNewCsClient] = useState("");
   const [newCsIndustry, setNewCsIndustry] = useState("");
   const [newCsHeadline, setNewCsHeadline] = useState("");
@@ -282,32 +362,76 @@ export default function AdminWorkspace() {
   const [newCsGrowth, setNewCsGrowth] = useState("+320%");
   const [newCsStrategy, setNewCsStrategy] = useState("");
 
-  const handleAddCaseStudy = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCsClient.trim() || !newCsHeadline.trim()) return;
-    const item: CaseStudy = {
-      id: `cs-${Date.now()}`,
-      slug: newCsClient.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      clientName: newCsClient.trim(),
-      industry: newCsIndustry.trim() || "E-commerce & Growth",
-      servicesUsed: ["Performance Marketing", "Website Development"],
-      headline: newCsHeadline.trim(),
-      challenge: "Customer acquisition costs were rising and previous ad funnels lacked server-side tracking.",
-      strategy: newCsStrategy.trim() || "Deployed high-frequency creative testing matrix and CAPI attribution.",
-      results: [
-        { label: "Average ROAS", value: newCsRoas.trim() },
-        { label: "Revenue Growth", value: newCsGrowth.trim() },
-        { label: "Attribution", value: "100%" },
-      ],
-    };
-    const updated = [item, ...portfolioList];
-    setPortfolioList(updated);
-    savePortfolio(updated);
+  const handleSelectCaseStudyToEdit = (cs: CaseStudy) => {
+    setEditingCsId(cs.id);
+    setNewCsClient(cs.clientName);
+    setNewCsIndustry(cs.industry);
+    setNewCsHeadline(cs.headline);
+    setNewCsStrategy(cs.strategy);
+    const roasMetric = cs.results.find((r) => r.label.toLowerCase().includes("roas"));
+    if (roasMetric) setNewCsRoas(roasMetric.value);
+    const growthMetric = cs.results.find((r) => r.label.toLowerCase().includes("growth"));
+    if (growthMetric) setNewCsGrowth(growthMetric.value);
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
+  const handleCancelCaseStudyEdit = () => {
+    setEditingCsId(null);
     setNewCsClient("");
     setNewCsIndustry("");
     setNewCsHeadline("");
     setNewCsStrategy("");
-    showToast("Case study published on Work page!");
+    setNewCsRoas("4.6x");
+    setNewCsGrowth("+320%");
+  };
+
+  const handleAddCaseStudy = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCsClient.trim() || !newCsHeadline.trim()) return;
+
+    if (editingCsId) {
+      const updated = portfolioList.map((c) =>
+        c.id === editingCsId
+          ? {
+              ...c,
+              clientName: newCsClient.trim(),
+              industry: newCsIndustry.trim() || "E-commerce & Growth",
+              headline: newCsHeadline.trim(),
+              strategy: newCsStrategy.trim() || c.strategy,
+              results: [
+                { label: "Average ROAS", value: newCsRoas.trim() },
+                { label: "Revenue Growth", value: newCsGrowth.trim() },
+                { label: "Attribution", value: "100%" },
+              ],
+            }
+          : c
+      );
+      setPortfolioList(updated);
+      savePortfolio(updated);
+      handleCancelCaseStudyEdit();
+      showToast("Case study updated successfully!");
+    } else {
+      const item: CaseStudy = {
+        id: `cs-${Date.now()}`,
+        slug: newCsClient.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        clientName: newCsClient.trim(),
+        industry: newCsIndustry.trim() || "E-commerce & Growth",
+        servicesUsed: ["Performance Marketing", "Website Development"],
+        headline: newCsHeadline.trim(),
+        challenge: "Customer acquisition costs were rising and previous ad funnels lacked server-side tracking.",
+        strategy: newCsStrategy.trim() || "Deployed high-frequency creative testing matrix and CAPI attribution.",
+        results: [
+          { label: "Average ROAS", value: newCsRoas.trim() },
+          { label: "Revenue Growth", value: newCsGrowth.trim() },
+          { label: "Attribution", value: "100%" },
+        ],
+      };
+      const updated = [item, ...portfolioList];
+      setPortfolioList(updated);
+      savePortfolio(updated);
+      handleCancelCaseStudyEdit();
+      showToast("Case study published on Work page!");
+    }
   };
 
   const handleDeleteCaseStudy = (id: string) => {
@@ -319,31 +443,65 @@ export default function AdminWorkspace() {
 
   // --- Services & Navbar State & Handlers ---
   const [servicesList, setServicesList] = useState<ServiceItem[]>(getServicesData);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [newServiceTitle, setNewServiceTitle] = useState("");
   const [newServiceCategory, setNewServiceCategory] = useState<"Marketing" | "Technology" | "Automation" | "Creative">("Marketing");
   const [newServiceSummary, setNewServiceSummary] = useState("");
 
+  const handleSelectServiceToEdit = (s: ServiceItem) => {
+    setEditingServiceId(s.id);
+    setNewServiceTitle(s.title);
+    setNewServiceCategory(s.category as any);
+    setNewServiceSummary(s.shortSummary);
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
+  const handleCancelServiceEdit = () => {
+    setEditingServiceId(null);
+    setNewServiceTitle("");
+    setNewServiceCategory("Marketing");
+    setNewServiceSummary("");
+  };
+
   const handleAddService = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newServiceTitle.trim() || !newServiceSummary.trim()) return;
-    const slug = newServiceTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const item: ServiceItem = {
-      id: `srv-${Date.now()}`,
-      slug,
-      title: newServiceTitle.trim(),
-      category: newServiceCategory,
-      shortSummary: newServiceSummary.trim(),
-      fullOverview: newServiceSummary.trim(),
-      deliverables: ["Strategy Architecture", "Execution & Launch", "Weekly Performance Sprints"],
-      icon: "Target",
-      faqs: [{ question: "How quickly do we start?", answer: "Onboarding completes within 5 business days." }],
-    };
-    const updated = [item, ...servicesList];
-    setServicesList(updated);
-    saveServicesData(updated);
-    setNewServiceTitle("");
-    setNewServiceSummary("");
-    showToast("Service added to website!");
+
+    if (editingServiceId) {
+      const updated = servicesList.map((s) =>
+        s.id === editingServiceId
+          ? {
+              ...s,
+              title: newServiceTitle.trim(),
+              category: newServiceCategory,
+              shortSummary: newServiceSummary.trim(),
+              fullOverview: newServiceSummary.trim(),
+            }
+          : s
+      );
+      setServicesList(updated);
+      saveServicesData(updated);
+      handleCancelServiceEdit();
+      showToast("Service updated successfully!");
+    } else {
+      const slug = newServiceTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const item: ServiceItem = {
+        id: `srv-${Date.now()}`,
+        slug,
+        title: newServiceTitle.trim(),
+        category: newServiceCategory,
+        shortSummary: newServiceSummary.trim(),
+        fullOverview: newServiceSummary.trim(),
+        deliverables: ["Strategy Architecture", "Execution & Launch", "Weekly Performance Sprints"],
+        icon: "Target",
+        faqs: [{ question: "How quickly do we start?", answer: "Onboarding completes within 5 business days." }],
+      };
+      const updated = [item, ...servicesList];
+      setServicesList(updated);
+      saveServicesData(updated);
+      handleCancelServiceEdit();
+      showToast("Service added to website!");
+    }
   };
 
   const handleDeleteService = (id: string) => {
@@ -355,30 +513,107 @@ export default function AdminWorkspace() {
 
   // --- Blog / Insights State & Handlers ---
   const [blogList, setBlogList] = useState<BlogPost[]>(getBlogPosts);
+  const [editingBlogSlug, setEditingBlogSlug] = useState<string | null>(null);
   const [newBlogTitle, setNewBlogTitle] = useState("");
   const [newBlogCategory, setNewBlogCategory] = useState("Paid Media");
   const [newBlogReadTime, setNewBlogReadTime] = useState("6 min read");
   const [newBlogSummary, setNewBlogSummary] = useState("");
+  const [newBlogContent, setNewBlogContent] = useState("");
+  const [newBlogCoverImage, setNewBlogCoverImage] = useState("");
+  const [newBlogAuthor, setNewBlogAuthor] = useState("Senior Growth Strategist");
+  const [isUploadingBlogCover, setIsUploadingBlogCover] = useState(false);
+
+  const handleBlogCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingBlogCover(true);
+    showToast("Uploading article cover image...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewBlogCoverImage(data.url);
+        showToast("Article cover uploaded successfully!");
+      } else {
+        showToast("Upload notice: " + (data.error || "Failed to upload image"));
+      }
+    } catch (err: any) {
+      showToast("Error uploading image: " + err.message);
+    } finally {
+      setIsUploadingBlogCover(false);
+    }
+  };
+
+  const handleSelectBlogToEdit = (post: BlogPost) => {
+    setEditingBlogSlug(post.slug);
+    setNewBlogTitle(post.title);
+    setNewBlogCategory(post.category);
+    setNewBlogReadTime(post.readTime);
+    setNewBlogSummary(post.summary);
+    setNewBlogContent(post.content || "");
+    setNewBlogCoverImage(post.coverImage || "");
+    setNewBlogAuthor(post.author || "Senior Growth Strategist");
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
+  const handleCancelBlogEdit = () => {
+    setEditingBlogSlug(null);
+    setNewBlogTitle("");
+    setNewBlogCategory("Paid Media");
+    setNewBlogReadTime("6 min read");
+    setNewBlogSummary("");
+    setNewBlogContent("");
+    setNewBlogCoverImage("");
+    setNewBlogAuthor("Senior Growth Strategist");
+  };
 
   const handleAddBlogPost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBlogTitle.trim() || !newBlogSummary.trim()) return;
-    const slug = newBlogTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const item: BlogPost = {
-      slug,
-      title: newBlogTitle.trim(),
-      summary: newBlogSummary.trim(),
-      category: newBlogCategory,
-      readTime: newBlogReadTime,
-      date: "November 2026",
-      author: "Growth Director",
-    };
-    const updated = [item, ...blogList];
-    setBlogList(updated);
-    saveBlogPosts(updated);
-    setNewBlogTitle("");
-    setNewBlogSummary("");
-    showToast("Blog article published on Blog page!");
+
+    if (editingBlogSlug) {
+      const updated = blogList.map((b) =>
+        b.slug === editingBlogSlug
+          ? {
+              ...b,
+              title: newBlogTitle.trim(),
+              summary: newBlogSummary.trim(),
+              category: newBlogCategory,
+              readTime: newBlogReadTime,
+              content: newBlogContent.trim(),
+              coverImage: newBlogCoverImage.trim(),
+              author: newBlogAuthor.trim() || "Senior Growth Strategist",
+            }
+          : b
+      );
+      setBlogList(updated);
+      saveBlogPosts(updated);
+      handleCancelBlogEdit();
+      showToast("Blog article updated successfully!");
+    } else {
+      const slug = newBlogTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const item: BlogPost = {
+        slug,
+        title: newBlogTitle.trim(),
+        summary: newBlogSummary.trim(),
+        category: newBlogCategory,
+        readTime: newBlogReadTime,
+        date: "November 2026",
+        author: newBlogAuthor.trim() || "Senior Growth Strategist",
+        content: newBlogContent.trim(),
+        coverImage: newBlogCoverImage.trim(),
+      };
+      const updated = [item, ...blogList];
+      setBlogList(updated);
+      saveBlogPosts(updated);
+      handleCancelBlogEdit();
+      showToast("Blog article published on Blog page!");
+    }
   };
 
   const handleDeleteBlogPost = (slug: string) => {
@@ -963,8 +1198,8 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
             </div>
 
             {/* Leads Table + Details Drawer */}
-            <div className="admin-grid-leads">
-              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] overflow-hidden">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+              <div className="xl:col-span-7 2xl:col-span-8 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     All Inquiries ({filteredLeads.length})
@@ -1034,7 +1269,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
 
               {/* Lead Details Drawer */}
-              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="xl:col-span-5 2xl:col-span-4 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 {selectedLead ? (
                   <>
                     <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
@@ -1221,12 +1456,163 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
         {/* ==================================================================== */}
         {activeTab === "cms-hero" && (
           <form onSubmit={handleSaveCMS} className="space-y-6">
+            {/* 1. Official Brand Logo Card */}
+            <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-4">
+              <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-brand-purple" />
+                    <span>Brand Logo & Monogram</span>
+                  </h3>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Upload your official brand logo. Dynamically updates across the Navbar, Footer, Mobile Navigation, and Admin.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  Live on All Pages
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">
+                {/* Live Emblem Preview Box */}
+                <div className="flex flex-col items-center gap-2 shrink-0">
+                  <div className="w-24 h-24 rounded-2xl bg-white shadow-md border-2 border-brand-purple/30 flex items-center justify-center p-2 overflow-hidden group relative">
+                    <img
+                      src={formContent.logoUrl || "/images/logo-raw.jpeg"}
+                      alt="Brand Logo"
+                      className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
+                    />
+                  </div>
+                  <span className="text-[10px] font-mono text-text-muted font-bold">Current Emblem</span>
+                </div>
+
+                {/* Upload Action (Strictly File Upload) */}
+                <div className="flex-1 space-y-3 w-full">
+                  <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
+                    <label className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                      Upload New Logo from Device:
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoFileUpload}
+                      className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-purple file:text-white hover:file:opacity-90 cursor-pointer"
+                    />
+                    {isUploadingLogo && (
+                      <span className="text-xs text-brand-purple font-semibold flex items-center gap-1.5 mt-1">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Uploading logo to server...
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleResetLogo}
+                      className="text-xs font-semibold text-text-muted hover:text-rose-500 transition-colors"
+                    >
+                      Reset to default logo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Public Announcement Top Banner Card */}
+            <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-4">
+              <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-purple-500" />
+                    <span>Top Announcement Banner</span>
+                  </h3>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Rendered prominently at the very top of the website above the navigation bar.
+                  </p>
+                </div>
+
+                {/* Banner Active Toggle */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <span className="text-xs font-bold text-text-muted">
+                    {formContent.bannerEnabled !== false ? "Banner Visible" : "Banner Hidden"}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={formContent.bannerEnabled !== false}
+                    onChange={(e) =>
+                      setFormContent({ ...formContent, bannerEnabled: e.target.checked })
+                    }
+                    className="w-4 h-4 rounded text-brand-purple focus:ring-brand-purple cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {/* LIVE PREVIEW OF THE BANNER */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 block">
+                  Live Site Preview (How visitors see it at top of site):
+                </span>
+                <div className="rounded-xl overflow-hidden border border-purple-500/30 bg-gradient-to-r from-purple-950 via-slate-900 to-purple-950 text-white p-3 shadow-md flex items-center justify-between gap-3 text-xs">
+                  <div className="flex-1 flex items-center justify-center gap-2 flex-wrap text-center">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-[9px] uppercase tracking-wider border border-purple-500/30">
+                      <Megaphone className="w-2.5 h-2.5 text-purple-400" />
+                      <span>Announcement</span>
+                    </span>
+                    <span className="text-slate-200 font-medium">
+                      {formContent.announcementText || "Now onboarding select performance ad accounts for the upcoming growth cycle."}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-bold text-purple-300 underline text-xs">
+                      Learn More →
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Announcement Text
+                  </label>
+                  <input
+                    type="text"
+                    value={formContent.announcementText}
+                    onChange={(e) =>
+                      setFormContent({
+                        ...formContent,
+                        announcementText: e.target.value,
+                        bannerText: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. Now onboarding select performance ad accounts for the upcoming growth cycle."
+                    className="w-full px-4 py-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-card dark:bg-[#0D0A14] text-xs font-medium focus:outline-none focus:border-brand-purple"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Destination Link
+                  </label>
+                  <input
+                    type="text"
+                    value={formContent.bannerLink || "/contact"}
+                    onChange={(e) =>
+                      setFormContent({ ...formContent, bannerLink: e.target.value })
+                    }
+                    placeholder="/contact or /get-a-quote"
+                    className="w-full px-4 py-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-card dark:bg-[#0D0A14] text-xs font-medium focus:outline-none focus:border-brand-purple font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Hero & Website Copy Card */}
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
               <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Website Content</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Hero & Website Copy</h3>
                   <p className="text-xs text-text-muted">
-                    Edit the main text and numbers displayed on the website.
+                    Edit the main hero text and marketing numbers displayed on the homepage.
                   </p>
                 </div>
                 <Button type="submit" disabled={isSaving} className="rounded-xl font-bold text-xs">
@@ -1251,14 +1637,12 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
-                    Top Announcement Banner
+                    Attribution Notice / Trust Badge
                   </label>
                   <input
                     type="text"
-                    value={formContent.announcementText}
-                    onChange={(e) =>
-                      setFormContent({ ...formContent, announcementText: e.target.value })
-                    }
+                    value={formContent.footerNotice}
+                    onChange={(e) => setFormContent({ ...formContent, footerNotice: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-card dark:bg-[#0D0A14] text-xs font-medium focus:outline-none focus:border-brand-purple"
                   />
                 </div>
@@ -1457,16 +1841,23 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-brand-purple" />
-                    <span>Add New Service</span>
+                    <span>{editingServiceId ? "Edit Service" : "Add New Service"}</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
                     Changes here immediately update the website navigation menu and service pages.
                   </p>
                 </div>
-                <Button type="submit" size="sm" className="rounded-xl">
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Publish Service
-                </Button>
+                <div className="flex items-center gap-2">
+                  {editingServiceId && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleCancelServiceEdit} className="rounded-xl">
+                      Cancel
+                    </Button>
+                  )}
+                  <Button type="submit" size="sm" className="rounded-xl">
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    {editingServiceId ? "Save Changes" : "Publish Service"}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1535,14 +1926,24 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
                           {srv.category}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteService(srv.id)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                          title="Remove service"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectServiceToEdit(srv)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-brand-purple hover:bg-brand-purple/10 transition-colors"
+                            title="Edit service"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteService(srv.id)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                            title="Remove service"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h5 className="font-heading font-bold text-sm text-text-main dark:text-white leading-tight">
                         {srv.title}
@@ -1575,16 +1976,23 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Award className="w-4 h-4 text-brand-purple" />
-                    <span>Add New Case Study</span>
+                    <span>{editingCsId ? "Edit Case Study" : "Add New Case Study"}</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
                     Published case studies appear on the portfolio and work page.
                   </p>
                 </div>
-                <Button type="submit" size="sm" className="rounded-xl">
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Publish Case Study
-                </Button>
+                <div className="flex items-center gap-2">
+                  {editingCsId && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleCancelCaseStudyEdit} className="rounded-xl">
+                      Cancel
+                    </Button>
+                  )}
+                  <Button type="submit" size="sm" className="rounded-xl">
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    {editingCsId ? "Save Changes" : "Publish Case Study"}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1687,14 +2095,24 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         <span className="text-xs font-mono font-bold text-brand-purple">
                           {cs.clientName} • {cs.industry}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCaseStudy(cs.id)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                          title="Remove case study"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectCaseStudyToEdit(cs)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-brand-purple hover:bg-brand-purple/10 transition-colors"
+                            title="Edit case study"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCaseStudy(cs.id)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                            title="Remove case study"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h5 className="font-heading font-bold text-sm text-text-main dark:text-white leading-snug">
                         {cs.headline}
@@ -1891,21 +2309,36 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-brand-purple" />
-                    <span>Publish New Article (/blog)</span>
+                    <span>
+                      {editingBlogSlug ? "Edit Article" : "Publish New Article (/blog)"}
+                    </span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
                     Articles are published immediately to the Insights & Performance Strategy Hub.
                   </p>
                 </div>
-                <Button type="submit" size="sm" className="rounded-xl">
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Publish Article
-                </Button>
+                <div className="flex items-center gap-2">
+                  {editingBlogSlug && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelBlogEdit}
+                      className="rounded-xl"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                  <Button type="submit" size="sm" className="rounded-xl">
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    {editingBlogSlug ? "Save Article Changes" : "Publish Article"}
+                  </Button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-text-muted mb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="block text-xs font-semibold text-text-muted">
                     Article Title *
                   </label>
                   <input
@@ -1917,8 +2350,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     className="w-full px-3.5 py-2 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-xs focus:outline-none focus:border-brand-purple"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted mb-1">
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-text-muted">
                     Category
                   </label>
                   <input
@@ -1928,6 +2362,68 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     placeholder="e.g. Paid Media"
                     className="w-full px-3.5 py-2 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-xs focus:outline-none focus:border-brand-purple"
                   />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-text-muted">
+                    Read Time
+                  </label>
+                  <input
+                    type="text"
+                    value={newBlogReadTime}
+                    onChange={(e) => setNewBlogReadTime(e.target.value)}
+                    placeholder="e.g. 6 min read"
+                    className="w-full px-3.5 py-2 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-xs focus:outline-none focus:border-brand-purple"
+                  />
+                </div>
+              </div>
+
+              {/* Cover Image Upload (Strictly via upload button) */}
+              <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Article Cover Image (Upload from Device):
+                  </span>
+                  {newBlogCoverImage && (
+                    <button
+                      type="button"
+                      onClick={() => setNewBlogCoverImage("")}
+                      className="text-xs text-rose-500 hover:underline font-semibold"
+                    >
+                      Remove Cover
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {newBlogCoverImage ? (
+                    <div className="w-20 h-14 rounded-lg overflow-hidden border border-brand-purple/40 bg-black shrink-0 shadow-sm">
+                      <img
+                        src={newBlogCoverImage}
+                        alt="Article Cover"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-14 rounded-lg border border-dashed border-brand-border dark:border-[#261E33] flex items-center justify-center shrink-0 text-text-muted">
+                      <ImageIcon className="w-5 h-5 opacity-40" />
+                    </div>
+                  )}
+
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBlogCoverUpload}
+                      className="block w-full text-xs text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-purple file:text-white hover:file:opacity-90 cursor-pointer"
+                    />
+                    {isUploadingBlogCover && (
+                      <span className="text-xs text-brand-purple font-semibold flex items-center gap-1.5 mt-1">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Uploading cover image...
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1944,6 +2440,19 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                   className="w-full px-3.5 py-2 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-xs focus:outline-none focus:border-brand-purple resize-none"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-text-muted mb-1">
+                  Full Article Content (Markdown or Paragraphs)
+                </label>
+                <textarea
+                  rows={6}
+                  placeholder="Full article content, paragraphs, strategy breakdowns, and tactical advice..."
+                  value={newBlogContent}
+                  onChange={(e) => setNewBlogContent(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-xs focus:outline-none focus:border-brand-purple font-mono leading-relaxed resize-y"
+                />
+              </div>
             </form>
 
             {/* Existing Blog Articles List */}
@@ -1952,7 +2461,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <h4 className="text-sm font-bold text-text-main dark:text-white">
                   Active Articles ({blogList.length})
                 </h4>
-                <span className="text-xs text-text-muted">Active on Blog</span>
+                <span className="text-xs text-text-muted">Click Edit to modify any article</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1962,18 +2471,38 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                     className="p-5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] flex flex-col justify-between space-y-3"
                   >
                     <div>
+                      {b.coverImage && (
+                        <div className="h-28 w-full rounded-lg overflow-hidden mb-3 bg-black">
+                          <img
+                            src={b.coverImage}
+                            alt={b.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mb-2">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
                           {b.category} • {b.readTime}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteBlogPost(b.slug)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                          title="Remove article"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectBlogToEdit(b)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-brand-purple hover:bg-brand-purple/10 transition-colors"
+                            title="Edit article"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBlogPost(b.slug)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                            title="Remove article"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h5 className="font-heading font-bold text-sm text-text-main dark:text-white leading-snug">
                         {b.title}
@@ -1983,8 +2512,15 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                       </p>
                     </div>
                     <div className="text-[10px] text-text-muted font-mono pt-2 border-t border-brand-border/40 dark:border-white/5 flex items-center justify-between">
-                      <span>/blog/{b.slug}</span>
-                      <span className="text-emerald-500">Active</span>
+                      <Link
+                        to={`/blog/${b.slug}`}
+                        target="_blank"
+                        className="text-brand-purple hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>/blog/{b.slug}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                      <span className="text-emerald-500 font-bold">Published</span>
                     </div>
                   </div>
                 ))}
@@ -2007,16 +2543,23 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 <div>
                   <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span>Add New Review</span>
+                    <span>{editingReviewId ? "Edit Review" : "Add New Review"}</span>
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
                     Client reviews displayed on the website.
                   </p>
                 </div>
-                <Button type="submit" size="sm" className="rounded-xl">
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Add to Website
-                </Button>
+                <div className="flex items-center gap-2">
+                  {editingReviewId && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleCancelReviewEdit} className="rounded-xl">
+                      Cancel
+                    </Button>
+                  )}
+                  <Button type="submit" size="sm" className="rounded-xl">
+                    <Save className="w-3.5 h-3.5 mr-1" />
+                    {editingReviewId ? "Save Review" : "Add to Website"}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -2120,14 +2663,24 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                       <span className="text-[10px] text-emerald-500 font-semibold">
                         ✓ Active on Website
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteReview(rev.id)}
-                        className="text-xs text-rose-500 hover:text-rose-600 font-semibold inline-flex items-center gap-1 p-1 rounded hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectReviewToEdit(rev)}
+                          className="text-xs text-brand-purple hover:underline font-semibold inline-flex items-center gap-1 p-1 rounded transition-colors"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReview(rev.id)}
+                          className="text-xs text-rose-500 hover:text-rose-600 font-semibold inline-flex items-center gap-1 p-1 rounded hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -2181,9 +2734,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
             </div>
 
-            <div className="admin-grid-projects">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Project Selector List (Left column) */}
-              <div className="p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
+              <div className="lg:col-span-4 xl:col-span-4 p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
                 <div className="flex items-center justify-between px-2">
                   <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted block">
                     Showcase Projects ({ecosystemProjects.length})
@@ -2241,7 +2794,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
 
               {/* Project Edit Form (Right column) */}
-              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="lg:col-span-8 xl:col-span-8 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 <form onSubmit={handleSaveProject} className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-border dark:border-[#261E33] pb-4">
                     <div>
@@ -2306,40 +2859,26 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         )}
                       </div>
 
-                      {/* File Uploader */}
-                      <div className="space-y-3">
-                        <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
-                          <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
-                            Upload Screenshot File:
+                      {/* File Uploader (Button only, no URL paste) */}
+                      <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
+                        <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                          Upload Screenshot File:
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileUpload}
+                          className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:opacity-90 cursor-pointer"
+                        />
+                        {isUploadingScreenshot && (
+                          <span className="text-xs text-purple-500 font-semibold flex items-center gap-1 mt-1">
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            Uploading screenshot to server...
                           </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageFileUpload}
-                            className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:opacity-90 cursor-pointer"
-                          />
-                          {isUploadingScreenshot && (
-                            <span className="text-xs text-purple-500 font-semibold flex items-center gap-1 mt-1">
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              Uploading screenshot to server...
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-medium text-text-muted block">
-                            Or Direct Image URL:
-                          </label>
-                          <input
-                            type="url"
-                            value={editingProject.imageUrl || ""}
-                            onChange={(e) =>
-                              setEditingProject((prev) => ({ ...prev, imageUrl: e.target.value }))
-                            }
-                            placeholder="https://example.com/screenshot.jpg"
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main font-mono"
-                          />
-                        </div>
+                        )}
+                        <p className="text-[11px] text-text-muted mt-1">
+                          Images are uploaded directly to the local server and rendered live.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -2864,34 +3403,77 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                    Official Monogram Emblem
-                  </span>
-                  <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-brand-purple/20 flex items-center justify-center p-2">
-                    <img
-                      src="/images/logo-raw.jpeg"
-                      alt="Logo Asset"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                      Official Brand Logo
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
+                      Live on Site
+                    </span>
                   </div>
-                  <div className="text-xs text-text-muted">
-                    Source: <code>/public/images/logo-raw.jpeg</code>
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-20 h-20 rounded-2xl bg-white shadow-md border border-brand-purple/20 flex items-center justify-center p-2 shrink-0">
+                      <img
+                        src={formContent.logoUrl || "/images/logo-raw.jpeg"}
+                        alt="Logo Asset"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoFileUpload}
+                        className="block w-full text-xs text-text-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-purple file:text-white hover:file:opacity-90 cursor-pointer"
+                      />
+                      {isUploadingLogo && (
+                        <span className="text-xs text-brand-purple font-semibold flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          Uploading logo...
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleResetLogo}
+                        className="text-[11px] text-text-muted hover:text-rose-500 font-semibold"
+                      >
+                        Reset to default logo
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                    Official Campaign Banner
-                  </span>
-                  <div className="w-full h-24 rounded-2xl overflow-hidden border border-brand-purple/20 bg-black flex items-center justify-center">
-                    <img
-                      src="/images/banner.jpeg"
-                      alt="Banner Asset"
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                      Top Announcement Banner
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400">
+                      {formContent.bannerEnabled !== false ? "Active" : "Disabled"}
+                    </span>
                   </div>
-                  <div className="text-xs text-text-muted">
-                    Source: <code>/public/images/banner.jpeg</code>
+
+                  <div className="rounded-xl overflow-hidden border border-purple-500/30 bg-gradient-to-r from-purple-950 via-slate-900 to-purple-950 text-white p-3 shadow-sm flex items-center justify-between gap-2 text-xs">
+                    <div className="flex-1 flex items-center gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-[9px] uppercase tracking-wider border border-purple-500/30">
+                        Announcement
+                      </span>
+                      <span className="text-slate-200 text-xs font-medium truncate">
+                        {formContent.announcementText || "Performance ad accounts onboarding open."}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-text-muted flex items-center justify-between">
+                    <span>Manage banner text & visibility under <strong>Website Text</strong> tab.</span>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange("cms-hero")}
+                      className="text-brand-purple font-bold hover:underline"
+                    >
+                      Edit Banner →
+                    </button>
                   </div>
                 </div>
               </div>

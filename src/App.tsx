@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { TopBanner } from "@/components/public/TopBanner";
 import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-text-main dark:bg-background-dark dark:text-text-main-dark transition-colors duration-200">
       <ScrollToTop />
+      {!isAdmin && <TopBanner />}
       {!isAdmin && <Navbar />}
 
       <div className="flex-1">

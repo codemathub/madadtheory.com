@@ -13,6 +13,10 @@ export interface SiteContentData {
   footerNotice: string;
   copyrightText: string;
   announcementText: string;
+  logoUrl?: string;
+  bannerEnabled?: boolean;
+  bannerLink?: string;
+  bannerText?: string;
   updatedAt?: string;
 }
 
@@ -32,6 +36,11 @@ const DEFAULT_CONTENT: SiteContentData = {
     "Mad Ad Theory — Performance marketing agency delivering measurable growth across paid media and custom web platforms.",
   copyrightText: "© 2026 Mad Ad Theory. All rights reserved.",
   announcementText:
+    "Now onboarding select performance ad accounts for the upcoming growth cycle.",
+  logoUrl: "/images/logo-raw.jpeg",
+  bannerEnabled: true,
+  bannerLink: "/contact",
+  bannerText:
     "Now onboarding select performance ad accounts for the upcoming growth cycle.",
 };
 

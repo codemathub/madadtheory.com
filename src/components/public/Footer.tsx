@@ -16,8 +16,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { saveLead } from "@/lib/leadsStore";
+import { useSiteContent } from "@/lib/siteContentStore";
 
 export function Footer() {
+  const content = useSiteContent();
+  const logoUrl = content?.logoUrl || "/images/logo-raw.jpeg";
   const [email, setEmail] = useState("");
   const [subscribedEmail, setSubscribedEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -266,7 +269,7 @@ export function Footer() {
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl overflow-hidden ring-1 ring-slate-200 dark:ring-cyan-400/40 shrink-0 bg-white shadow-sm">
                   <img
-                    src="/images/logo-raw.jpeg"
+                    src={logoUrl}
                     alt="Mad Ad Theory Emblem"
                     className="w-full h-full object-cover"
                   />

@@ -28,8 +28,17 @@ export default function Blog() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {blogPosts.map((post) => (
-              <Card key={post.slug} hoverEffect className="p-8 flex flex-col justify-between">
-                <div className="space-y-4">
+              <Card key={post.slug} hoverEffect className="overflow-hidden flex flex-col justify-between">
+                {post.coverImage && (
+                  <div className="h-44 w-full overflow-hidden bg-slate-900 border-b border-surface-border">
+                    <img
+                      src={post.coverImage}
+                      alt={post.title}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                    />
+                  </div>
+                )}
+                <div className="p-8 space-y-4">
                   <div className="flex items-center justify-between text-xs text-content-muted">
                     <span className="font-bold text-brand-primary">{post.category}</span>
                     <span className="flex items-center gap-1">

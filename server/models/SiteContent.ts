@@ -13,6 +13,10 @@ export interface ISiteContent extends Document {
   footerNotice: string;
   copyrightText: string;
   announcementText: string;
+  logoUrl?: string;
+  bannerEnabled?: boolean;
+  bannerLink?: string;
+  bannerText?: string;
   updatedAt: Date;
 }
 
@@ -68,7 +72,24 @@ const SiteContentSchema = new Schema<ISiteContent>(
     announcementText: {
       type: String,
       default:
-        "Now scaling select Q4 Meta & Google Ad accounts with guaranteed ROAS targets.",
+        "Now onboarding select performance ad accounts for the upcoming growth cycle.",
+    },
+    logoUrl: {
+      type: String,
+      default: "/images/logo-raw.jpeg",
+    },
+    bannerEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    bannerLink: {
+      type: String,
+      default: "/contact",
+    },
+    bannerText: {
+      type: String,
+      default:
+        "Now onboarding select performance ad accounts for the upcoming growth cycle.",
     },
   },
   {

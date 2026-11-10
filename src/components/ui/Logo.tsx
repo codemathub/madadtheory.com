@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useSiteContent } from "@/lib/siteContentStore";
 
 interface LogoProps {
   className?: string;
@@ -15,6 +16,9 @@ export function Logo({
   showTagline = false,
   size = "md",
 }: LogoProps) {
+  const content = useSiteContent();
+  const logoSrc = content?.logoUrl || "/images/logo-raw.jpeg";
+
   const iconSizes = {
     sm: "w-8 h-8 rounded-lg",
     md: "w-10 h-10 rounded-xl",
@@ -41,7 +45,7 @@ export function Logo({
         )}
       >
         <img
-          src="/images/logo-raw.jpeg"
+          src={logoSrc}
           alt="Mad Ad Theory Monogram Emblem"
           className="w-full h-full object-contain"
         />

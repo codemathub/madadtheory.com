@@ -22,6 +22,11 @@ let activeContent = {
   copyrightText: "© 2026 Mad Ad Theory. All rights reserved.",
   announcementText:
     "Now onboarding select performance ad accounts for the upcoming growth cycle.",
+  logoUrl: "/images/logo-raw.jpeg",
+  bannerEnabled: true,
+  bannerLink: "/contact",
+  bannerText:
+    "Now onboarding select performance ad accounts for the upcoming growth cycle.",
   updatedAt: new Date().toISOString(),
 };
 

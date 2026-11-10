@@ -60,15 +60,23 @@ export default function BlogPost() {
         </header>
 
         {/* Featured Visual Banner */}
-        <div className="w-full h-64 sm:h-80 rounded-3xl bg-gradient-to-br from-purple-900/30 via-slate-900/40 to-black/80 border border-slate-200 dark:border-white/10 mb-12 flex items-center justify-center p-8 text-center relative overflow-hidden shadow-lg">
-          <div className="relative z-10 max-w-lg space-y-2">
-            <span className="text-xs font-mono text-purple-400 uppercase tracking-widest font-bold block">
-              Performance Framework
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-heading font-black text-white">
-              {post.category} & Systematic Growth
-            </h2>
-          </div>
+        <div className="w-full h-64 sm:h-80 rounded-3xl bg-gradient-to-br from-purple-900/30 via-slate-900/40 to-black/80 border border-slate-200 dark:border-white/10 mb-12 flex items-center justify-center text-center relative overflow-hidden shadow-lg">
+          {post.coverImage ? (
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="relative z-10 max-w-lg space-y-2 p-8">
+              <span className="text-xs font-mono text-purple-400 uppercase tracking-widest font-bold block">
+                Performance Framework
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-heading font-black text-white">
+                {post.category} & Systematic Growth
+              </h2>
+            </div>
+          )}
         </div>
 
         {/* Article Body */}
