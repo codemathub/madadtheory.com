@@ -2197,9 +2197,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Project Selector List (Left 4 cols) */}
-              <div className="lg:col-span-4 p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
+            <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+              {/* Project Selector List (Left column) */}
+              <div className="w-full lg:w-80 shrink-0 p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
                 <div className="flex items-center justify-between px-2">
                   <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted block">
                     Showcase Projects ({ecosystemProjects.length})
@@ -2256,10 +2256,10 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                 </div>
               </div>
 
-              {/* Project Edit Form (Right 8 cols) */}
-              <div className="lg:col-span-8 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              {/* Project Edit Form (Right column) */}
+              <div className="flex-1 w-full min-w-0 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 <form onSubmit={handleSaveProject} className="space-y-6">
-                  <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-border dark:border-[#261E33] pb-4">
                     <div>
                       <span className="text-[10px] font-mono uppercase text-brand-purple font-bold tracking-wider">
                         Project ID: {editingProject.id}
@@ -2269,18 +2269,18 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                       </h4>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {ecosystemProjects.length > 1 && (
                         <button
                           type="button"
                           onClick={() => handleDeleteProject(editingProject.id)}
-                          className="px-3 py-1.5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-bold transition-all flex items-center gap-1"
+                          className="px-3.5 py-2 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-bold transition-all flex items-center gap-1.5"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Delete</span>
                         </button>
                       )}
-                      <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white">
+                      <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
                         <Save className="w-3.5 h-3.5 mr-1.5" />
                         Save Project
                       </Button>

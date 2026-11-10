@@ -24,8 +24,14 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-    # File upload limit matching backend (50MB)
-    client_max_body_size 50M;
+    # File upload limit matching backend (25MB)
+    client_max_body_size 25M;
+
+    # Slowloris & Dead Connection Protection (Frees server sockets automatically)
+    client_body_timeout 12;
+    client_header_timeout 12;
+    keepalive_timeout 15;
+    send_timeout 10;
 
     # Gzip Compression
     gzip on;
