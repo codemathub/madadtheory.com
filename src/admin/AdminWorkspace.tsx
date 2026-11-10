@@ -156,6 +156,7 @@ export default function AdminWorkspace() {
     const list = getEcosystemProjects();
     return list[0] || ({} as EcosystemProject);
   });
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
 
   const handleSelectProject = (id: string) => {
     setSelectedProjectId(id);
@@ -163,11 +164,55 @@ export default function AdminWorkspace() {
     if (found) setEditingProject({ ...found });
   };
 
+  const handleAddNewProject = () => {
+    const newId = `pm-${Date.now()}`;
+    const newNumber = String(ecosystemProjects.length + 1).padStart(2, "0");
+    const newProj: EcosystemProject = {
+      id: newId,
+      categoryId: "performance-marketing",
+      number: newNumber,
+      title: "New Growth Showcase",
+      shortTag: "Active ROAS",
+      summary: "Full-funnel paid acquisition and high-converting performance campaign.",
+      liveUrl: "https://nerditia.com",
+      imageUrl: "",
+      serviceSlug: "performance-marketing",
+      status: "Active & Scaling",
+      kpis: [
+        { label: "Blended ROAS", value: "4.5x", note: "Meta & Google Ads" },
+        { label: "Monthly Volume", value: "₹85 Lakhs", note: "Attributed Revenue" },
+        { label: "Blended CAC", value: "₹380", note: "Lower Acquisition Cost" },
+        { label: "Attribution", value: "100%", note: "Server-Side Tracking" },
+      ],
+      techStack: ["Meta CAPI", "Google Ads", "Next.js"],
+    };
+    const updated = [newProj, ...ecosystemProjects];
+    setEcosystemProjects(updated);
+    saveEcosystemProjects(updated);
+    setSelectedProjectId(newId);
+    setEditingProject(newProj);
+    showToast("New showcase project created! Add your screenshot & links.");
+  };
+
+  const handleDeleteProject = (id: string) => {
+    if (ecosystemProjects.length <= 1) {
+      showToast("Cannot delete the last project.");
+      return;
+    }
+    const updated = ecosystemProjects.filter((p) => p.id !== id);
+    setEcosystemProjects(updated);
+    saveEcosystemProjects(updated);
+    setSelectedProjectId(updated[0].id);
+    setEditingProject(updated[0]);
+    showToast("Project removed from showcase.");
+  };
+
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setIsUploadingScreenshot(true);
+    showToast("Uploading screenshot to server...");
     try {
-      showToast("Uploading image to server...");
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/upload", {
@@ -177,7 +222,7 @@ export default function AdminWorkspace() {
       const data = await res.json();
       if (data.success && data.url) {
         setEditingProject((prev) => ({ ...prev, imageUrl: data.url }));
-        showToast("Image uploaded to server! Click 'Save Project' to publish live.");
+        showToast("Screenshot uploaded! Click 'Save Project' to publish live.");
         return;
       }
     } catch {}
@@ -188,6 +233,7 @@ export default function AdminWorkspace() {
       showToast("Screenshot loaded! Click 'Save Project' to publish live.");
     };
     reader.readAsDataURL(file);
+    setIsUploadingScreenshot(false);
   };
 
   // --- Careers State & Handlers ---
@@ -371,20 +417,78 @@ export default function AdminWorkspace() {
   const [newVidRole, setNewVidRole] = useState("");
   const [newVidUrl, setNewVidUrl] = useState("");
   const [newVidPoster, setNewVidPoster] = useState("");
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingPoster, setIsUploadingPoster] = useState(false);
 
   // New photo form state
   const [newPhotoTitle, setNewPhotoTitle] = useState("");
   const [newPhotoTag, setNewPhotoTag] = useState("Delhi Hub");
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingVideo(true);
+    showToast("Uploading video reel to server...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewVidUrl(data.url);
+        showToast("Video uploaded! Ready to publish.");
+      } else {
+        showToast("Upload notice: " + (data.error || "Failed to upload video"));
+      }
+    } catch (err: any) {
+      showToast("Error uploading video: " + err.message);
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
+  const handlePosterFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPoster(true);
+    showToast("Uploading poster thumbnail...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewVidPoster(data.url);
+        showToast("Poster thumbnail uploaded!");
+      } else {
+        showToast("Poster notice: " + (data.error || "Failed to upload thumbnail"));
+      }
+    } catch (err: any) {
+      showToast("Error uploading thumbnail: " + err.message);
+    } finally {
+      setIsUploadingPoster(false);
+    }
+  };
 
   const handleAddVideo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVidName.trim() || !newVidUrl.trim()) return;
+    if (!newVidName.trim() || !newVidUrl.trim()) {
+      showToast("Please provide the client name and upload a video.");
+      return;
+    }
     const item: VideoTestimonial = {
       id: `vid-${Date.now()}`,
       name: newVidName.trim(),
       company: newVidCompany.trim() || "Client Partner",
-      role: newVidRole.trim() || "Founder",
+      role: newVidRole.trim() || "Founder & Operator",
       videoUrl: newVidUrl.trim(),
       posterUrl:
         newVidPoster.trim() ||
@@ -398,23 +502,54 @@ export default function AdminWorkspace() {
     setNewVidRole("");
     setNewVidUrl("");
     setNewVidPoster("");
-    showToast("Video testimonial published live on homepage!");
+    showToast("Video reel published live to website!");
   };
 
   const handleDeleteVideo = (id: string) => {
     const updated = videoTestimonials.filter((v) => v.id !== id);
     setVideoTestimonials(updated);
     saveVideoTestimonials(updated);
-    showToast("Video testimonial deleted.");
+    showToast("Video testimonial removed from site.");
+  };
+
+  const handlePhotoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    showToast("Uploading photo to server...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewPhotoUrl(data.url);
+        showToast("Photo uploaded! Click 'Publish Culture Photo'.");
+        return;
+      }
+    } catch {}
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewPhotoUrl(reader.result as string);
+      showToast("Photo loaded! Click 'Publish Culture Photo'.");
+    };
+    reader.readAsDataURL(file);
+    setIsUploadingPhoto(false);
   };
 
   const handleAddPhoto = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPhotoTitle.trim() || !newPhotoUrl.trim()) return;
+    if (!newPhotoTitle.trim() || !newPhotoUrl.trim()) {
+      showToast("Please enter a caption and upload a photo.");
+      return;
+    }
     const item: GalleryPhoto = {
       id: `gal-${Date.now()}`,
       title: newPhotoTitle.trim(),
-      tag: newPhotoTag.trim(),
+      tag: newPhotoTag.trim() || "Team Culture",
       imageUrl: newPhotoUrl.trim(),
     };
     const updated = [item, ...galleryPhotos];
@@ -430,32 +565,6 @@ export default function AdminWorkspace() {
     setGalleryPhotos(updated);
     saveGalleryPhotos(updated);
     showToast("Gallery photo removed.");
-  };
-
-  const handlePhotoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      showToast("Uploading photo to server...");
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.success && data.url) {
-        setNewPhotoUrl(data.url);
-        showToast("Photo uploaded to server! Click 'Publish Culture Photo'.");
-        return;
-      }
-    } catch {}
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewPhotoUrl(reader.result as string);
-      showToast("Photo loaded! Click 'Publish Culture Photo'.");
-    };
-    reader.readAsDataURL(file);
   };
 
   // Auth check & load leads
@@ -554,6 +663,32 @@ export default function AdminWorkspace() {
     showToast(`Converted ${lead.companyName} to Active Client Project!`);
   };
 
+  const handleCopyLeadSummary = (lead: LeadItem) => {
+    const svcs = (lead.servicesRequired || lead.services || []).join(", ") || "General Inquiry";
+    const text = `MAD AD THEORY - CLIENT ENQUIRY BRIEF
+Ref ID: ${lead.refNumber}
+Company: ${lead.companyName} (${lead.industry || "General"})
+Contact Person: ${lead.fullName}
+Email: ${lead.email}
+Phone: ${lead.phone || "None provided"}
+Website: ${lead.websiteUrl || "None provided"}
+Budget: ${lead.approxBudget || lead.budgetRange || "Flexible"}
+Timeline: ${lead.expectedTimeline || lead.timeline || "Immediate"}
+Services Required: ${svcs}
+
+Project Brief & Goals:
+${lead.projectDescription}
+
+Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
+
+    try {
+      navigator.clipboard.writeText(text);
+      showToast("Full enquiry details copied to clipboard!");
+    } catch {
+      showToast("Unable to copy to clipboard.");
+    }
+  };
+
   const handleSaveCMS = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -637,118 +772,31 @@ export default function AdminWorkspace() {
             onClick={() => handleTabChange("leads")}
             className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
               activeTab === "leads"
-                ? "border-brand-purple text-brand-purple"
+                ? "border-brand-purple text-brand-purple font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Inbound Leads & CRM</span>
-            <span className="ml-1.5 px-2 py-0.2 rounded-full bg-brand-purple/15 text-[10px]">
-              {totalLeads}
-            </span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("cms-hero")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "cms-hero"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <FileEdit className="w-4 h-4" />
-            <span>Site Content & Metrics</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("cms-footer")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "cms-footer"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <MapPin className="w-4 h-4" />
-            <span>Footer & Company Info</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("services")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "services"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            <span>Services & Navbar ({servicesList.length})</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("portfolio")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "portfolio"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <Award className="w-4 h-4" />
-            <span>Work & Case Studies ({portfolioList.length})</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("careers")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "careers"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            <span>Careers & Openings ({careersList.length})</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("blog")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "blog"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Blog & Insights ({blogList.length})</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange("reviews")}
-            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "reviews"
-                ? "border-brand-purple text-brand-purple"
-                : "border-transparent text-text-muted hover:text-text-main"
-            }`}
-          >
-            <Star className="w-4 h-4" />
-            <span>Google Reviews ({googleReviews.length})</span>
+            <span>Client Inquiries ({totalLeads})</span>
           </button>
 
           <button
             onClick={() => handleTabChange("ecosystem")}
             className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
               activeTab === "ecosystem"
-                ? "border-brand-purple text-brand-purple"
+                ? "border-brand-purple text-brand-purple font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Live Systems & Screenshots ({ecosystemProjects.length})</span>
+            <span>Showcase Projects ({ecosystemProjects.length})</span>
           </button>
 
           <button
-            onClick={() => handleTabChange("media-upload")}
+            onClick={() => handleTabChange("media")}
             className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "media-upload"
-                ? "border-brand-purple text-brand-purple"
+              activeTab === "media" || activeTab === "media-upload"
+                ? "border-brand-purple text-brand-purple font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
@@ -757,15 +805,75 @@ export default function AdminWorkspace() {
           </button>
 
           <button
-            onClick={() => handleTabChange("media")}
+            onClick={() => handleTabChange("reviews")}
             className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
-              activeTab === "media"
-                ? "border-brand-purple text-brand-purple"
+              activeTab === "reviews"
+                ? "border-brand-purple text-brand-purple font-bold"
                 : "border-transparent text-text-muted hover:text-text-main"
             }`}
           >
-            <ImageIcon className="w-4 h-4" />
-            <span>Brand Assets</span>
+            <Star className="w-4 h-4" />
+            <span>Google Reviews ({googleReviews.length})</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange("services")}
+            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              activeTab === "services"
+                ? "border-brand-purple text-brand-purple font-bold"
+                : "border-transparent text-text-muted hover:text-text-main"
+            }`}
+          >
+            <Briefcase className="w-4 h-4" />
+            <span>Services ({servicesList.length})</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange("portfolio")}
+            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              activeTab === "portfolio"
+                ? "border-brand-purple text-brand-purple font-bold"
+                : "border-transparent text-text-muted hover:text-text-main"
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            <span>Case Studies ({portfolioList.length})</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange("blog")}
+            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              activeTab === "blog"
+                ? "border-brand-purple text-brand-purple font-bold"
+                : "border-transparent text-text-muted hover:text-text-main"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Blog Articles ({blogList.length})</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange("cms-hero")}
+            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              activeTab === "cms-hero"
+                ? "border-brand-purple text-brand-purple font-bold"
+                : "border-transparent text-text-muted hover:text-text-main"
+            }`}
+          >
+            <FileEdit className="w-4 h-4" />
+            <span>Website Content</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange("cms-footer")}
+            className={`py-3 px-4 border-b-2 flex items-center space-x-2 whitespace-nowrap transition-colors ${
+              activeTab === "cms-footer"
+                ? "border-brand-purple text-brand-purple font-bold"
+                : "border-transparent text-text-muted hover:text-text-main"
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Footer & Office</span>
           </button>
         </div>
       </header>
@@ -941,67 +1049,139 @@ export default function AdminWorkspace() {
               </div>
 
               {/* Lead Details Drawer */}
-              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-5">
+              <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
                 {selectedLead ? (
                   <>
                     <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-mono text-xs font-bold text-brand-purple">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-lg bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
                           {selectedLead.refNumber}
                         </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-purple/10 text-brand-purple">
-                          {selectedLead.stage}
-                        </span>
+                        <select
+                          value={selectedLead.stage}
+                          onChange={(e) => handleStageChange(selectedLead.id, e.target.value)}
+                          className="text-xs font-bold rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] px-2.5 py-1 text-brand-purple focus:outline-none"
+                        >
+                          <option value="New">New</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Qualified">Qualified</option>
+                          <option value="Discovery">Discovery</option>
+                          <option value="Proposal Sent">Proposal Sent</option>
+                          <option value="Negotiation">Negotiation</option>
+                          <option value="Won">Won</option>
+                          <option value="Lost">Lost</option>
+                        </select>
                       </div>
-                      <h4 className="text-xl font-extrabold">{selectedLead.companyName}</h4>
-                      <p className="text-xs text-text-muted mt-0.5">
-                        Submitted: {new Date(selectedLead.createdAt).toLocaleDateString()}
+
+                      <h4 className="text-xl font-black text-slate-900 dark:text-white">
+                        {selectedLead.companyName}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {selectedLead.fullName}
+                        </span>
+                        {selectedLead.industry && (
+                          <>
+                            <span className="text-slate-400 text-xs">•</span>
+                            <span className="text-xs text-text-muted">{selectedLead.industry}</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-text-muted mt-1">
+                        Received: {new Date(selectedLead.createdAt).toLocaleString()}
                       </p>
                     </div>
 
-                    <div className="space-y-3 text-xs">
-                      <div className="flex items-center text-text-muted">
-                        <Mail className="w-3.5 h-3.5 mr-2 text-brand-purple" />
-                        <a href={`mailto:${selectedLead.email}`} className="text-text-main dark:text-text-main-dark hover:underline">
+                    {/* Quick Contact Actions */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href={`mailto:${selectedLead.email}?subject=Regarding%20Your%20Inquiry%20with%20Mad%20Ad%20Theory`}
+                        className="p-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] hover:border-brand-purple flex items-center justify-center gap-2 text-xs font-bold text-text-main hover:text-brand-purple transition-all"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-brand-purple" />
+                        <span>Email Client</span>
+                      </a>
+
+                      {selectedLead.phone ? (
+                        <a
+                          href={`tel:${selectedLead.phone}`}
+                          className="p-2.5 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] hover:border-brand-purple flex items-center justify-center gap-2 text-xs font-bold text-text-main hover:text-brand-purple transition-all"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Call Direct</span>
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-2.5 rounded-xl border border-brand-border/40 dark:border-[#261E33]/40 bg-surface-subtle/50 dark:bg-[#0D0A14]/50 flex items-center justify-center gap-2 text-xs text-text-muted opacity-50 cursor-not-allowed"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>No Phone</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Contact & Website Information */}
+                    <div className="p-4 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border/60 dark:border-[#261E33]/60 space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted font-medium">Work Email:</span>
+                        <a href={`mailto:${selectedLead.email}`} className="font-semibold text-text-main hover:underline">
                           {selectedLead.email}
                         </a>
                       </div>
-                      <div className="flex items-center text-text-muted">
-                        <Phone className="w-3.5 h-3.5 mr-2 text-brand-purple" />
-                        <span>{selectedLead.phone || "No phone provided"}</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted font-medium">Phone Number:</span>
+                        <span className="font-semibold">{selectedLead.phone || "Not provided"}</span>
                       </div>
                       {selectedLead.websiteUrl && (
-                        <div className="flex items-center text-text-muted">
-                          <Globe className="w-3.5 h-3.5 mr-2 text-brand-purple" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-text-muted font-medium">Website:</span>
                           <a
                             href={selectedLead.websiteUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-brand-purple hover:underline flex items-center"
+                            className="font-semibold text-brand-purple hover:underline inline-flex items-center gap-1"
                           >
-                            {selectedLead.websiteUrl}
+                            <span>{selectedLead.websiteUrl.replace(/^https?:\/\//, "")}</span>
+                            <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
                       )}
-                      <div className="flex items-center text-text-muted">
-                        <DollarSign className="w-3.5 h-3.5 mr-2 text-brand-purple" />
-                        <span>Approx Budget: <strong className="text-text-main dark:text-text-main-dark">{selectedLead.approxBudget}</strong></span>
+                    </div>
+
+                    {/* Budget & Timeline Card */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border/60 dark:border-[#261E33]/60">
+                        <span className="text-[10px] uppercase font-bold text-text-muted block mb-1">
+                          Approx Budget
+                        </span>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                          <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>{selectedLead.approxBudget}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center text-text-muted">
-                        <Clock className="w-3.5 h-3.5 mr-2 text-brand-purple" />
-                        <span>Timeline: <strong className="text-text-main dark:text-text-main-dark">{selectedLead.expectedTimeline}</strong></span>
+
+                      <div className="p-3 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border/60 dark:border-[#261E33]/60">
+                        <span className="text-[10px] uppercase font-bold text-text-muted block mb-1">
+                          Timeline
+                        </span>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-brand-purple" />
+                          <span>{selectedLead.expectedTimeline}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                        Services Required
-                      </label>
+                    {/* Services Requested */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-text-muted block">
+                        Services Required ({selectedLead.servicesRequired.length})
+                      </span>
                       <div className="flex flex-wrap gap-1.5">
                         {selectedLead.servicesRequired.map((svc) => (
                           <span
                             key={svc}
-                            className="px-2 py-0.5 rounded-md bg-brand-purple/10 text-brand-purple text-[11px] font-semibold"
+                            className="px-2.5 py-1 rounded-lg bg-brand-purple/10 text-brand-purple border border-brand-purple/20 text-xs font-bold"
                           >
                             {svc}
                           </span>
@@ -1009,19 +1189,31 @@ export default function AdminWorkspace() {
                       </div>
                     </div>
 
+                    {/* Project Brief */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                        Project Description
-                      </label>
-                      <p className="text-xs p-3 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] text-text-muted leading-relaxed">
+                      <span className="text-xs font-bold uppercase tracking-wider text-text-muted block">
+                        Project Brief & Requirement
+                      </span>
+                      <div className="p-4 rounded-xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border/60 dark:border-[#261E33]/60 text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
                         {selectedLead.projectDescription}
-                      </p>
+                      </div>
                     </div>
 
-                    <div className="pt-2">
+                    {/* Action Buttons */}
+                    <div className="space-y-2 pt-2">
                       <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleCopyLeadSummary(selectedLead)}
+                        className="w-full rounded-xl text-xs font-bold py-2.5"
+                      >
+                        Copy Full Brief (WhatsApp / Slack)
+                      </Button>
+
+                      <Button
+                        type="button"
                         onClick={() => handleConvertToClient(selectedLead)}
-                        className="w-full rounded-xl text-xs font-bold"
+                        className="w-full rounded-xl text-xs font-bold py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
                       >
                         <UserCheck className="w-4 h-4 mr-2" />
                         Convert to Active Client & Won
@@ -1031,7 +1223,8 @@ export default function AdminWorkspace() {
                 ) : (
                   <div className="py-20 text-center text-text-muted text-xs space-y-2">
                     <Sparkles className="w-8 h-8 mx-auto text-brand-purple/40" />
-                    <p>Select any lead from the table to inspect project scope, contact information, and transition stages.</p>
+                    <p className="font-semibold text-text-main">No Lead Selected</p>
+                    <p>Click on any inquiry row in the table to inspect contact details, requirements, budget, and project scope.</p>
                   </div>
                 )}
               </div>
@@ -1960,21 +2153,30 @@ export default function AdminWorkspace() {
         )}
 
         {/* ==================================================================== */}
-        {/* TAB 4: LIVE SYSTEMS & SCREENSHOTS CMS */}
+        {/* TAB 4: LIVE SHOWCASE PROJECTS CMS */}
         {/* ==================================================================== */}
         {activeTab === "ecosystem" && editingProject && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Live Systems & Screenshot Manager
+                  Live Showcase Projects
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Upload custom project screenshots, set real live links, and manage performance telemetry.
+                  Manage the interactive client projects shown on the homepage with real screenshots and live website links.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleAddNewProject}
+                  className="text-xs rounded-xl font-bold bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Add New Project
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1998,9 +2200,19 @@ export default function AdminWorkspace() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Project Selector List (Left 4 cols) */}
               <div className="lg:col-span-4 p-4 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-3">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted px-2 block">
-                  Select Project to Edit ({ecosystemProjects.length})
-                </span>
+                <div className="flex items-center justify-between px-2">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-text-muted block">
+                    Showcase Projects ({ecosystemProjects.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddNewProject}
+                    className="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>New</span>
+                  </button>
+                </div>
 
                 <div className="space-y-1.5 max-h-[620px] overflow-y-auto pr-1">
                   {ecosystemProjects.map((proj) => {
@@ -2031,11 +2243,11 @@ export default function AdminWorkspace() {
 
                         {proj.imageUrl ? (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold shrink-0">
-                            Image
+                            Screenshot
                           </span>
                         ) : (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-medium shrink-0">
-                            Mock
+                            Default UI
                           </span>
                         )}
                       </button>
@@ -2050,23 +2262,35 @@ export default function AdminWorkspace() {
                   <div className="flex items-center justify-between border-b border-brand-border dark:border-[#261E33] pb-4">
                     <div>
                       <span className="text-[10px] font-mono uppercase text-brand-purple font-bold tracking-wider">
-                        Editing Instance: {editingProject.id}
+                        Project ID: {editingProject.id}
                       </span>
                       <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
                         {editingProject.title}
                       </h4>
                     </div>
 
-                    <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md">
-                      <Save className="w-3.5 h-3.5 mr-1.5" />
-                      Save & Publish Live
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {ecosystemProjects.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProject(editingProject.id)}
+                          className="px-3 py-1.5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-bold transition-all flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                      <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white">
+                        <Save className="w-3.5 h-3.5 mr-1.5" />
+                        Save Project
+                      </Button>
+                    </div>
                   </div>
 
                   {/* 1. Screenshot Upload Section */}
                   <div className="space-y-3">
                     <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                      Project Screenshot / Preview Image
+                      Project Screenshot (Uploaded via Button)
                     </label>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
@@ -2082,39 +2306,45 @@ export default function AdminWorkspace() {
                             <button
                               type="button"
                               onClick={() => setEditingProject((prev) => ({ ...prev, imageUrl: "" }))}
-                              className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-red-600 text-white text-[10px] font-bold shadow-md hover:bg-red-700"
+                              className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-red-600 text-white text-[10px] font-bold shadow-md hover:bg-red-700 transition-colors"
                             >
-                              Remove Image
+                              Remove Screenshot
                             </button>
                           </>
                         ) : (
                           <div className="text-center space-y-2 p-4 text-text-muted">
-                            <ImageIcon className="w-8 h-8 mx-auto opacity-50" />
-                            <p className="text-xs">No custom image uploaded.</p>
-                            <span className="text-[10px] text-brand-purple block">
-                              (Currently showing built-in telemetry dashboard)
+                            <ImageIcon className="w-8 h-8 mx-auto opacity-50 text-purple-400" />
+                            <p className="text-xs font-semibold">No screenshot uploaded yet.</p>
+                            <span className="text-[10px] text-text-muted block">
+                              Click upload below to add a real project capture.
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* File Uploader and URL input */}
+                      {/* File Uploader */}
                       <div className="space-y-3">
                         <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
-                          <span className="text-xs font-semibold block text-slate-800 dark:text-slate-200">
-                            Upload from Computer:
+                          <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                            Upload Screenshot File:
                           </span>
                           <input
                             type="file"
                             accept="image/*"
                             onChange={handleImageFileUpload}
-                            className="block w-full text-xs text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-purple file:text-white hover:file:opacity-90 cursor-pointer"
+                            className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:opacity-90 cursor-pointer"
                           />
+                          {isUploadingScreenshot && (
+                            <span className="text-xs text-purple-500 font-semibold flex items-center gap-1 mt-1">
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              Uploading screenshot to server...
+                            </span>
+                          )}
                         </div>
 
                         <div className="space-y-1">
                           <label className="text-[11px] font-medium text-text-muted block">
-                            Or Paste Direct Image URL:
+                            Or Direct Image URL:
                           </label>
                           <input
                             type="url"
@@ -2123,46 +2353,69 @@ export default function AdminWorkspace() {
                               setEditingProject((prev) => ({ ...prev, imageUrl: e.target.value }))
                             }
                             placeholder="https://example.com/screenshot.jpg"
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                            className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main font-mono"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* 2. Live Project URL Link */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                      Live Project URL (Endpoint)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        required
-                        value={editingProject.liveUrl}
-                        onChange={(e) =>
-                          setEditingProject((prev) => ({ ...prev, liveUrl: e.target.value }))
-                        }
-                        placeholder="https://client-domain.com"
-                        className="flex-1 px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                      />
-                      <a
-                        href={editingProject.liveUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-2 rounded-xl border border-brand-border dark:border-[#261E33] text-xs font-bold hover:border-brand-purple flex items-center gap-1 shrink-0"
-                      >
-                        <span>Test Link</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* 3. Title & Summary */}
+                  {/* 2. Category & Live Link */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                        Title
+                        Category
+                      </label>
+                      <select
+                        value={editingProject.categoryId}
+                        onChange={(e) =>
+                          setEditingProject((prev) => ({
+                            ...prev,
+                            categoryId: e.target.value as any,
+                          }))
+                        }
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main font-semibold"
+                      >
+                        <option value="performance-marketing">Performance Marketing</option>
+                        <option value="software-tech">Web & Software</option>
+                        <option value="automation-crm">Workflow Automation</option>
+                        <option value="influencer-creative">Influencer & Creative</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
+                        Live Project Website Link
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          required
+                          value={editingProject.liveUrl}
+                          onChange={(e) =>
+                            setEditingProject((prev) => ({ ...prev, liveUrl: e.target.value }))
+                          }
+                          placeholder="https://client-domain.com"
+                          className="flex-1 px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                        />
+                        <a
+                          href={editingProject.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-2 rounded-xl border border-brand-border dark:border-[#261E33] text-xs font-bold hover:border-brand-purple flex items-center gap-1 shrink-0"
+                        >
+                          <span>Test</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Title & Highlight Badge */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
+                        Project Name / Title
                       </label>
                       <input
                         type="text"
@@ -2171,24 +2424,26 @@ export default function AdminWorkspace() {
                         onChange={(e) =>
                           setEditingProject((prev) => ({ ...prev, title: e.target.value }))
                         }
+                        placeholder="e.g. D2C Fashion ROAS Sprint"
                         className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main font-semibold"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                        Status Label
+                        Highlight Badge / Metric Tag
                       </label>
                       <input
                         type="text"
-                        value={editingProject.status}
+                        value={editingProject.shortTag}
                         onChange={(e) =>
                           setEditingProject((prev) => ({
                             ...prev,
-                            status: e.target.value as typeof editingProject.status,
+                            shortTag: e.target.value,
                           }))
                         }
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                        placeholder="e.g. 4.82x ROAS or 148 Demos / mo"
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main font-semibold"
                       />
                     </div>
                   </div>
@@ -2203,6 +2458,7 @@ export default function AdminWorkspace() {
                       onChange={(e) =>
                         setEditingProject((prev) => ({ ...prev, summary: e.target.value }))
                       }
+                      placeholder="Short summary of results and deliverables..."
                       className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main resize-none"
                     />
                   </div>
@@ -2210,7 +2466,7 @@ export default function AdminWorkspace() {
                   {/* 4. 4 KPI Metrics */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-text-main block">
-                      4 Key Performance Metrics
+                      Key Results & Metrics (4 Items)
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {editingProject.kpis.map((kpi, idx) => (
@@ -2226,8 +2482,8 @@ export default function AdminWorkspace() {
                               copy[idx].label = e.target.value;
                               setEditingProject((prev) => ({ ...prev, kpis: copy }));
                             }}
-                            placeholder="Label"
-                            className="w-full px-2 py-1 text-[11px] font-bold rounded-lg border border-brand-border/60 bg-transparent"
+                            placeholder="Metric (e.g. ROAS)"
+                            className="w-full px-2 py-1 text-[11px] font-bold rounded-lg border border-brand-border/60 bg-transparent text-text-main"
                           />
                           <input
                             type="text"
@@ -2237,8 +2493,8 @@ export default function AdminWorkspace() {
                               copy[idx].value = e.target.value;
                               setEditingProject((prev) => ({ ...prev, kpis: copy }));
                             }}
-                            placeholder="Value (e.g. 4.8x)"
-                            className="w-full px-2 py-1 text-xs font-black rounded-lg border border-brand-border/60 bg-transparent text-brand-purple"
+                            placeholder="Value (e.g. 4.82x)"
+                            className="w-full px-2 py-1 text-xs font-black rounded-lg border border-brand-border/60 bg-transparent text-purple-600 dark:text-purple-400"
                           />
                           <input
                             type="text"
@@ -2248,7 +2504,7 @@ export default function AdminWorkspace() {
                               copy[idx].note = e.target.value;
                               setEditingProject((prev) => ({ ...prev, kpis: copy }));
                             }}
-                            placeholder="Note"
+                            placeholder="Note (e.g. Meta & Google)"
                             className="w-full px-2 py-0.5 text-[10px] text-text-muted rounded-lg border border-brand-border/60 bg-transparent"
                           />
                         </div>
@@ -2257,7 +2513,7 @@ export default function AdminWorkspace() {
                   </div>
 
                   <div className="pt-4 border-t border-brand-border dark:border-[#261E33] flex justify-end">
-                    <Button type="submit" variant="primary" size="md" className="rounded-xl font-bold shadow-md">
+                    <Button type="submit" variant="primary" size="md" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white">
                       <Save className="w-4 h-4 mr-2" />
                       Save & Publish Live
                     </Button>
@@ -2269,18 +2525,18 @@ export default function AdminWorkspace() {
         )}
 
         {/* ==================================================================== */}
-        {/* TAB 5: CLIENT VIDEOS & CULTURE PHOTOS CMS */}
+        {/* TAB 5: VIDEOS, PHOTOS & BRAND ASSETS (MEDIA STUDIO) */}
         {/* ==================================================================== */}
-        {activeTab === "media-upload" && (
+        {(activeTab === "media" || activeTab === "media-upload") && (
           <div className="space-y-10">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33]">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Client Videos & Photo Gallery CMS
+                  Media Studio: Client Videos & Photo Gallery
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Upload video testimonials and team culture photos. All items auto-play and auto-slide on the homepage.
+                  Upload video reels and team culture photos directly from your computer. Updates immediately appear on the live homepage.
                 </p>
               </div>
 
@@ -2295,82 +2551,152 @@ export default function AdminWorkspace() {
               </a>
             </div>
 
-            {/* 1. Upload Video Testimonial */}
+            {/* 1. Client Video Reels */}
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
-              <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-brand-purple">
-                  Video Reels
+              <div className="border-b border-brand-border dark:border-[#261E33] pb-4 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                    Video Reels
+                  </span>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                    Upload New Client Video Reel
+                  </h4>
+                </div>
+                <span className="text-xs font-bold text-text-muted">
+                  {videoTestimonials.length} Reels Active
                 </span>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                  Add New Client Video Testimonial
-                </h4>
               </div>
 
-              <form onSubmit={handleAddVideo} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Client Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newVidName}
-                    onChange={(e) => setNewVidName(e.target.value)}
-                    placeholder="e.g. Vikram Malhotra"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
+              <form onSubmit={handleAddVideo} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main block">Client Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newVidName}
+                      onChange={(e) => setNewVidName(e.target.value)}
+                      placeholder="e.g. Vikram Malhotra"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main block">Company / Brand Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newVidCompany}
+                      onChange={(e) => setNewVidCompany(e.target.value)}
+                      placeholder="e.g. Apex Apparel D2C"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main block">Role / Designation</label>
+                    <input
+                      type="text"
+                      value={newVidRole}
+                      onChange={(e) => setNewVidRole(e.target.value)}
+                      placeholder="e.g. Founder & CEO"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Company Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newVidCompany}
-                    onChange={(e) => setNewVidCompany(e.target.value)}
-                    placeholder="e.g. Apex Apparel D2C"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
+                {/* Direct Upload Buttons for Video and Poster */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
+                    <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                      1. Upload Video File (MP4, WebM):
+                    </span>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/*"
+                      onChange={handleVideoFileUpload}
+                      className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:opacity-90 cursor-pointer"
+                    />
+                    {isUploadingVideo && (
+                      <span className="text-xs text-purple-500 font-semibold flex items-center gap-1 mt-1">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Uploading video to server...
+                      </span>
+                    )}
+                    {newVidUrl && !isUploadingVideo && (
+                      <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1 mt-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Video ready: {newVidUrl}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
+                    <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                      2. Upload Video Thumbnail / Poster:
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePosterFileUpload}
+                      className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:opacity-90 cursor-pointer"
+                    />
+                    {isUploadingPoster && (
+                      <span className="text-xs text-purple-500 font-semibold flex items-center gap-1 mt-1">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Uploading poster to server...
+                      </span>
+                    )}
+                    {newVidPoster && !isUploadingPoster && (
+                      <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1 mt-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Poster attached
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Client Role</label>
-                  <input
-                    type="text"
-                    value={newVidRole}
-                    onChange={(e) => setNewVidRole(e.target.value)}
-                    placeholder="e.g. Founder & CEO"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
+                {/* Optional direct URL fallback */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="text-[11px] text-text-muted block mb-1">Or Video Direct URL:</label>
+                    <input
+                      type="url"
+                      value={newVidUrl}
+                      onChange={(e) => setNewVidUrl(e.target.value)}
+                      placeholder="https://... or uploaded file path"
+                      className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-text-muted block mb-1">Or Poster Image URL:</label>
+                    <input
+                      type="url"
+                      value={newVidPoster}
+                      onChange={(e) => setNewVidPoster(e.target.value)}
+                      placeholder="https://... or uploaded poster path"
+                      className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-xs font-bold text-text-main block">
-                    Video Direct Link (MP4 / WebM / Cloud URL) *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={newVidUrl}
-                    onChange={(e) => setNewVidUrl(e.target.value)}
-                    placeholder="https://commondatastorage.googleapis.com/... or https://your-domain.com/video.mp4"
-                    className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
-                </div>
+                {/* Live video preview */}
+                {newVidUrl && (
+                  <div className="p-3 rounded-2xl bg-black/40 border border-brand-border/40 flex items-center gap-4">
+                    <div className="w-16 h-24 rounded-xl overflow-hidden bg-black shrink-0 border border-white/10">
+                      <video src={newVidUrl} poster={newVidPoster} className="w-full h-full object-cover" muted autoPlay loop />
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <span className="font-bold text-emerald-400 block">Preview Ready</span>
+                      <span className="text-slate-300 font-semibold">{newVidName || "Client"} • {newVidCompany || "Company"}</span>
+                    </div>
+                  </div>
+                )}
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Poster Thumbnail URL</label>
-                  <input
-                    type="url"
-                    value={newVidPoster}
-                    onChange={(e) => setNewVidPoster(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 lg:col-span-3 flex justify-end pt-2">
-                  <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md">
+                <div className="flex justify-end pt-2">
+                  <Button type="submit" variant="primary" size="md" className="rounded-xl font-bold shadow-md bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="w-4 h-4 mr-1.5" />
-                    Publish Video Testimonial
+                    Publish Video Reel to Homepage
                   </Button>
                 </div>
               </form>
@@ -2402,8 +2728,11 @@ export default function AdminWorkspace() {
                         <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                           {vid.name}
                         </h5>
-                        <p className="text-[11px] text-brand-purple font-semibold truncate">
+                        <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold truncate">
                           {vid.company}
+                        </p>
+                        <p className="text-[10px] text-text-muted truncate">
+                          {vid.role}
                         </p>
                       </div>
 
@@ -2413,7 +2742,7 @@ export default function AdminWorkspace() {
                         className="w-full py-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
                         <Trash2 className="w-3 h-3" />
-                        <span>Delete</span>
+                        <span>Delete Reel</span>
                       </button>
                     </div>
                   ))}
@@ -2423,64 +2752,77 @@ export default function AdminWorkspace() {
 
             {/* 2. Upload Team & Culture Photos */}
             <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
-              <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-500">
-                  Culture & Milestones
+              <div className="border-b border-brand-border dark:border-[#261E33] pb-4 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-500">
+                    Culture & Office Gallery
+                  </span>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                    Add Team & Culture Photo
+                  </h4>
+                </div>
+                <span className="text-xs font-bold text-text-muted">
+                  {galleryPhotos.length} Photos Active
                 </span>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                  Add Culture & Office Gallery Photo
-                </h4>
               </div>
 
-              <form onSubmit={handleAddPhoto} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Photo Caption / Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newPhotoTitle}
-                    onChange={(e) => setNewPhotoTitle(e.target.value)}
-                    placeholder="e.g. Campaign Launch & Delhi Team Sprint"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
+              <form onSubmit={handleAddPhoto} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main block">Photo Caption / Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newPhotoTitle}
+                      onChange={(e) => setNewPhotoTitle(e.target.value)}
+                      placeholder="e.g. Campaign Launch & Delhi Team Sprint"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main block">Tag / Office Location</label>
+                    <input
+                      type="text"
+                      value={newPhotoTag}
+                      onChange={(e) => setNewPhotoTag(e.target.value)}
+                      placeholder="e.g. Delhi Hub, Milestone, Sprint"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Tag / Office Location</label>
-                  <input
-                    type="text"
-                    value={newPhotoTag}
-                    onChange={(e) => setNewPhotoTag(e.target.value)}
-                    placeholder="e.g. Delhi Hub, Milestone, Sprint"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main block">Upload Image File</label>
+                {/* Direct Photo File Upload */}
+                <div className="p-4 rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] space-y-2">
+                  <span className="text-xs font-bold block text-slate-800 dark:text-slate-200">
+                    Upload Photo File from Device:
+                  </span>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePhotoFileUpload}
-                    className="block w-full text-xs text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:opacity-90 cursor-pointer"
+                    className="block w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:opacity-90 cursor-pointer"
                   />
+                  {isUploadingPhoto && (
+                    <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1 mt-1">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Uploading photo to server...
+                    </span>
+                  )}
+                  {newPhotoUrl && !isUploadingPhoto && (
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-emerald-500/40 bg-black shrink-0">
+                        <img src={newPhotoUrl} alt="Upload preview" className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-xs text-emerald-500 font-semibold">Photo attached and ready!</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
-                  <label className="text-xs font-bold text-text-main block">Or Direct Image URL *</label>
-                  <input
-                    type="url"
-                    value={newPhotoUrl}
-                    onChange={(e) => setNewPhotoUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-... or uploaded data URL"
-                    className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-brand-border dark:border-[#261E33] bg-surface-subtle dark:bg-[#0D0A14] text-text-main"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 lg:col-span-3 flex justify-end pt-2">
-                  <Button type="submit" variant="primary" size="sm" className="rounded-xl font-bold shadow-md bg-emerald-600 hover:bg-emerald-700">
+                <div className="flex justify-end pt-2">
+                  <Button type="submit" variant="primary" size="md" className="rounded-xl font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white">
                     <Plus className="w-4 h-4 mr-1.5" />
-                    Publish Culture Photo
+                    Publish Photo to Gallery
                   </Button>
                 </div>
               </form>
@@ -2488,7 +2830,7 @@ export default function AdminWorkspace() {
               {/* Active Photos Grid */}
               <div className="space-y-3 pt-4 border-t border-brand-border dark:border-[#261E33]">
                 <span className="text-xs font-bold uppercase tracking-wider text-text-muted block">
-                  Active Culture Gallery Photos ({galleryPhotos.length})
+                  Active Gallery Photos ({galleryPhotos.length})
                 </span>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -2520,64 +2862,56 @@ export default function AdminWorkspace() {
                         className="w-full py-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-bold transition-colors flex items-center justify-center gap-1"
                       >
                         <Trash2 className="w-3 h-3" />
-                        <span>Delete</span>
+                        <span>Delete Photo</span>
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* ==================================================================== */}
-        {/* TAB 6: BRAND ASSETS & PREVIEW */}
-        {/* ==================================================================== */}
-        {activeTab === "media" && (
-          <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
-            <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
-              <h3 className="text-lg font-bold">Brand Assets & Identity Settings</h3>
-              <p className="text-xs text-text-muted">
-                Official graphics configured for the Mad Ad Theory platform.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Emblem Preview */}
-              <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Official Monogram Emblem
+            {/* 3. Official Brand Assets */}
+            <div className="p-6 rounded-2xl bg-surface-card dark:bg-[#151020] border border-brand-border dark:border-[#261E33] space-y-6">
+              <div className="border-b border-brand-border dark:border-[#261E33] pb-4">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-brand-purple">
+                  Identity Settings
                 </span>
-                <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-brand-purple/20 flex items-center justify-center p-2">
-                  <img
-                    src="/images/logo-raw.jpeg"
-                    alt="Logo Asset"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="text-xs text-text-muted">
-                  Source: <code>/public/images/logo-raw.jpeg</code>
-                  <br />
-                  Resolution: Crisp vector-raster emblem
-                </div>
+                <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                  Brand Assets & Official Graphics
+                </h4>
               </div>
 
-              {/* Banner Preview */}
-              <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Official Campaign Banner
-                </span>
-                <div className="w-full h-24 rounded-2xl overflow-hidden border border-brand-purple/20 bg-black flex items-center justify-center">
-                  <img
-                    src="/images/banner.jpeg"
-                    alt="Banner Asset"
-                    className="w-full h-full object-cover"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Official Monogram Emblem
+                  </span>
+                  <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-brand-purple/20 flex items-center justify-center p-2">
+                    <img
+                      src="/images/logo-raw.jpeg"
+                      alt="Logo Asset"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="text-xs text-text-muted">
+                    Source: <code>/public/images/logo-raw.jpeg</code>
+                  </div>
                 </div>
-                <div className="text-xs text-text-muted">
-                  Source: <code>/public/images/banner.jpeg</code>
-                  <br />
-                  Positioning: Performance Marketing Agency ("You set the target. We hit it.")
+
+                <div className="p-6 rounded-2xl bg-surface-subtle dark:bg-[#0D0A14] border border-brand-border dark:border-[#261E33] space-y-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Official Campaign Banner
+                  </span>
+                  <div className="w-full h-24 rounded-2xl overflow-hidden border border-brand-purple/20 bg-black flex items-center justify-center">
+                    <img
+                      src="/images/banner.jpeg"
+                      alt="Banner Asset"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-xs text-text-muted">
+                    Source: <code>/public/images/banner.jpeg</code>
+                  </div>
                 </div>
               </div>
             </div>
