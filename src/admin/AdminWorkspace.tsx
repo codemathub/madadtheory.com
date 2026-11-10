@@ -1481,6 +1481,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                       src={formContent.logoUrl || "/images/logo-raw.jpeg"}
                       alt="Brand Logo"
                       className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/favicon.svg";
+                      }}
                     />
                   </div>
                   <span className="text-[10px] font-mono text-text-muted font-bold">Current Emblem</span>
@@ -3418,6 +3421,9 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         src={formContent.logoUrl || "/images/logo-raw.jpeg"}
                         alt="Logo Asset"
                         className="w-full h-full object-contain"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/favicon.svg";
+                        }}
                       />
                     </div>
                     <div className="space-y-2 flex-1">

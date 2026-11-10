@@ -75,9 +75,25 @@ const leadSubmissionLimiter = rateLimit({
   },
 });
 
-// Serve static uploads
+// Static Asset Serving
+const publicPath = path.resolve(process.cwd(), "public");
+const imagesPath = path.resolve(process.cwd(), "public", "images");
 const uploadsPath = path.resolve(process.cwd(), "public", "uploads");
-app.use("/uploads", express.static(uploadsPath));
+
+// Explicitly serve /images from public/images
+if (fs.existsSync(imagesPath)) {
+  app.use("/images", express.static(imagesPath, { maxAge: "7d" }));
+}
+
+// Explicitly serve uploads from public/uploads
+if (fs.existsSync(uploadsPath)) {
+  app.use("/uploads", express.static(uploadsPath, { maxAge: "7d" }));
+}
+
+// Serve root public folder (favicon.ico, favicon.svg, robots.txt, etc.)
+if (fs.existsSync(publicPath)) {
+  app.use(express.static(publicPath, { maxAge: "1d" }));
+}
 
 // API Routes with Protection
 app.use("/api/auth/send-otp", otpAuthLimiter);
@@ -107,8 +123,15 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath, { maxAge: "1d" }));
 
   app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
-      return next();
+    // Never send index.html for API endpoints, uploads, images, assets, or file extensions
+    if (
+      req.path.startsWith("/api") ||
+      req.path.startsWith("/uploads") ||
+      req.path.startsWith("/images") ||
+      req.path.startsWith("/assets") ||
+      /\.(jpe?g|png|gif|svg|ico|webp|css|js|map|json|woff2?|ttf|eot)$/i.test(req.path)
+    ) {
+      return res.status(404).send("Asset not found");
     }
     res.sendFile(path.join(distPath, "index.html"));
   });

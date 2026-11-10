@@ -298,3 +298,4 @@ pm2 restart madadtheory
 ## 8. License
 
 © 2026 Mad Ad Theory. All rights reserved. Private proprietary codebase.
+

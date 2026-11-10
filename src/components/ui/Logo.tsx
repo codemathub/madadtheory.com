@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSiteContent } from "@/lib/siteContentStore";
@@ -17,7 +17,12 @@ export function Logo({
   size = "md",
 }: LogoProps) {
   const content = useSiteContent();
+  const [hasError, setHasError] = useState(false);
   const logoSrc = content?.logoUrl || "/images/logo-raw.jpeg";
+
+  useEffect(() => {
+    setHasError(false);
+  }, [logoSrc]);
 
   const iconSizes = {
     sm: "w-8 h-8 rounded-lg",
@@ -44,11 +49,20 @@ export function Logo({
           iconSizes[size]
         )}
       >
-        <img
-          src={logoSrc}
-          alt="Mad Ad Theory Monogram Emblem"
-          className="w-full h-full object-contain"
-        />
+        {!hasError ? (
+          <img
+            src={logoSrc}
+            alt="Mad Ad Theory Emblem"
+            className="w-full h-full object-contain"
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <div className="w-full h-full bg-[#18122B] flex items-center justify-center rounded">
+            <span className="font-heading font-black text-brand-purple text-[11px] sm:text-xs tracking-tight">
+              MAT
+            </span>
+          </div>
+        )}
       </div>
 
       {variant !== "iconOnly" && (
