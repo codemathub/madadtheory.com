@@ -1482,7 +1482,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                       alt="Brand Logo"
                       className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "/favicon.svg";
+                        (e.currentTarget as HTMLImageElement).src = "/images/logo-raw.jpeg";
                       }}
                     />
                   </div>
@@ -3422,7 +3422,7 @@ Submitted At: ${new Date(lead.createdAt).toLocaleString()}`;
                         alt="Logo Asset"
                         className="w-full h-full object-contain"
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = "/favicon.svg";
+                          (e.currentTarget as HTMLImageElement).src = "/images/logo-raw.jpeg";
                         }}
                       />
                     </div>
